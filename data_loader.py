@@ -20,10 +20,8 @@ class InputExample(object):
     Args:
         guid: Unique id for the example.
         words: list. The words of the sequence.
-        intent_label: (Optional) string. The intent label of the example. This should be
-        specified for train and dev examples, but not for test examples.
-        slot_labels: (Optional) string. The slot labels of the example. This should be
-        specified for train and dev examples, but not for test examples.
+        intent_label: (Optional) string. The intent label of the example.
+        slot_labels: (Optional) string. The slot labels of the example.
     """
 
     def __init__(self, guid, words, intent_label=None, slot_labels=None):
@@ -76,7 +74,7 @@ class JointProcessor(object):
         self.intent_labels = get_intent_labels(args)
         self.slot_labels = get_slot_labels(args)
 
-        self.input_text_file = 'seq_in'
+        self.input_text_file = 'seq.in'
         self.intent_label_file = 'label'
         self.slot_labels_file = 'seq.out'
 
@@ -84,10 +82,9 @@ class JointProcessor(object):
     def _read_file(cls, input_file, quotechar=None):
         """Reads a tab separated value file."""
         with open(input_file, "r", encoding="utf-8") as f:
-            reader = csv.reader(f, delimiter="\t", quotechar=quotechar)
             lines = []
-            for line in reader:
-                lines.append(line)
+            for line in f:
+                lines.append(line.strip())
             return lines
 
     def _create_examples(self, texts, intents, slots, set_type):
@@ -98,14 +95,15 @@ class JointProcessor(object):
             # 1. input_text
             if not self.args.no_lower_case:
                 text = text.lower()
-            words = text.split(" ")
+            words = text.split()  # Some are spaced twice
             # 2. intent
-            intent_label = self.intent_labels.index(intent)
+            intent_label = self.intent_labels.index(intent) if intent in self.intent_labels else self.intent_labels.index("UNK")
             # 3. slot
             slot_labels = []
             for s in slot.split():
-                slot_labels.append(self.slot_labels.index(s))
+                slot_labels.append(self.slot_labels.index(s) if s in self.slot_labels else self.slot_labels.index("UNK"))
 
+            assert len(words) == len(slot_labels)
             examples.append(InputExample(guid=guid, words=words, intent_label=intent_label, slot_labels=slot_labels))
         return examples
 
@@ -145,8 +143,10 @@ def convert_examples_to_features(examples, max_seq_len, tokenizer,
         # Tokenize word by word (for NER)
         tokens = []
         slot_labels_ids = []
-        for word, slot_label in zip(examples.words, examples.slot_labels):
+        for word, slot_label in zip(example.words, example.slot_labels):
             word_tokens = tokenizer.tokenize(word)
+            if not word_tokens:
+                word_tokens = ["[UNK]"]  # For handling the bad-encoded word
             tokens.extend(word_tokens)
             # Use the real label id for the first token of the word, and padding ids for the remaining tokens
             slot_labels_ids.extend([int(slot_label)] + [pad_token_label_id] * (len(word_tokens) - 1))
@@ -178,7 +178,7 @@ def convert_examples_to_features(examples, max_seq_len, tokenizer,
         input_ids = input_ids + ([pad_token] * padding_length)
         attention_mask = attention_mask + ([0 if mask_padding_with_zero else 1] * padding_length)
         token_type_ids = token_type_ids + ([pad_token_segment_id] * padding_length)
-        slot_labels_ids += ([pad_token_label_id] * padding_length)
+        slot_labels_ids = slot_labels_ids + ([pad_token_label_id] * padding_length)
 
         assert len(input_ids) == max_seq_len, "Error with input length {} vs {}".format(len(input_ids), max_seq_len)
         assert len(attention_mask) == max_seq_len, "Error with attention mask length {} vs {}".format(len(attention_mask), max_seq_len)

@@ -1,3 +1,4 @@
+UNK
 atis_abbreviation
 atis_aircraft
 atis_aircraft#atis_flight#atis_flight_no

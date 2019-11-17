@@ -15,9 +15,10 @@ logger = logging.getLogger(__name__)
 
 
 class Trainer(object):
-    def __init__(self, args, train_dataset=None, test_dataset=None):
+    def __init__(self, args, train_dataset=None, dev_dataset=None, test_dataset=None):
         self.args = args
         self.train_dataset = train_dataset
+        self.dev_dataset = dev_dataset
         self.test_dataset = test_dataset
 
         self.intent_label_lst = get_intent_labels(args)
@@ -97,7 +98,7 @@ class Trainer(object):
                     global_step += 1
 
                     if self.args.logging_steps > 0 and global_step % self.args.logging_steps == 0:
-                        self.evaluate()
+                        self.evaluate("dev")
 
                     if self.args.save_steps > 0 and global_step % self.args.save_steps == 0:
                         self.save_model()
@@ -112,13 +113,21 @@ class Trainer(object):
 
         return global_step, tr_loss / global_step
 
-    def evaluate(self):
-        eval_sampler = SequentialSampler(self.test_dataset)
-        eval_dataloader = DataLoader(self.test_dataset, sampler=eval_sampler, batch_size=self.args.batch_size)
+    def evaluate(self, mode):
+        # We use test dataset because semeval doesn't have dev dataset
+        if mode == 'test':
+            dataset = self.test_dataset
+        elif mode == 'dev':
+            dataset = self.dev_dataset
+        else:
+            raise Exception("Only dev and test dataset available")
+
+        eval_sampler = SequentialSampler(dataset)
+        eval_dataloader = DataLoader(dataset, sampler=eval_sampler, batch_size=self.args.batch_size)
 
         # Eval!
-        logger.info("***** Running evaluation *****")
-        logger.info("  Num examples = %d", len(self.test_dataset))
+        logger.info("***** Running evaluation on %s dataset *****", mode)
+        logger.info("  Num examples = %d", len(dataset))
         logger.info("  Batch size = %d", self.args.batch_size)
         eval_loss = 0.0
         nb_eval_steps = 0
@@ -127,8 +136,9 @@ class Trainer(object):
         out_intent_label_ids = None
         out_slot_labels_ids = None
 
+        self.model.eval()
+
         for batch in tqdm(eval_dataloader, desc="Evaluating"):
-            self.model.eval()
             batch = tuple(t.to(self.device) for t in batch)
             with torch.no_grad():
                 inputs = {'input_ids': batch[0],
@@ -167,11 +177,10 @@ class Trainer(object):
         intent_preds = np.argmax(intent_preds, axis=1)
         intent_result = compute_metrics(intent_preds, out_intent_label_ids)
         results.update(intent_result)
+
         # Slot result
         slot_preds = np.argmax(slot_preds, axis=2)
-
         slot_label_map = {i: label for i, label in enumerate(self.slot_label_lst)}
-
         out_label_list = [[] for _ in range(out_slot_labels_ids.shape[0])]
         preds_list = [[] for _ in range(out_slot_labels_ids.shape[0])]
 
@@ -213,7 +222,8 @@ class Trainer(object):
         try:
             self.bert_config = BertConfig.from_pretrained(self.args.model_dir)
             logger.info("***** Bert config loaded *****")
-            self.model = JointBERT.from_pretrained(self.args.model_dir, config=self.bert_config, args=self.args)
+            self.model = JointBERT.from_pretrained(self.args.model_dir, config=self.bert_config,
+                                                   args=self.args, num_intent_labels=self.num_intent_labels, num_slot_labels=self.num_slot_labels)
             self.model.to(self.device)
             logger.info("***** Model Loaded *****")
         except:
