@@ -47,6 +47,6 @@ def acc_and_f1(preds, labels, average='macro'):
     acc = simple_accuracy(preds, labels)
     f1 = f1_score(y_true=labels, y_pred=preds, average=average)
     return {
-        "acc": acc,
-        "f1": f1,
+        "intent_acc": acc,
+        "intent_f1": f1,
     }

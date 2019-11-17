@@ -48,12 +48,12 @@ class InputExample(object):
 class InputFeatures(object):
     """A single set of features of data."""
 
-    def __init__(self, input_ids, attention_mask, token_type_ids, intent_label_id, slot_label_ids):
+    def __init__(self, input_ids, attention_mask, token_type_ids, intent_label_id, slot_labels_ids):
         self.input_ids = input_ids
         self.attention_mask = attention_mask
         self.token_type_ids = token_type_ids
         self.intent_label_id = intent_label_id
-        self.slot_label_ids = slot_label_ids
+        self.slot_labels_ids = slot_labels_ids
 
     def __repr__(self):
         return str(self.to_json_string())
@@ -144,26 +144,27 @@ def convert_examples_to_features(examples, max_seq_len, tokenizer,
 
         # Tokenize word by word (for NER)
         tokens = []
-        slot_label_ids = []
+        slot_labels_ids = []
         for word, slot_label in zip(examples.words, examples.slot_labels):
             word_tokens = tokenizer.tokenize(word)
             tokens.extend(word_tokens)
             # Use the real label id for the first token of the word, and padding ids for the remaining tokens
-            slot_label_ids.extend([int(slot_label)] + [pad_token_label_id] * (len(word_tokens) - 1))
+            slot_labels_ids.extend([int(slot_label)] + [pad_token_label_id] * (len(word_tokens) - 1))
 
         # Account for [CLS] and [SEP]
         special_tokens_count = 2
-        if len(tokens_a) > max_seq_len - special_tokens_count:
-            tokens_a = tokens_a[:(max_seq_len - special_tokens_count)]
+        if len(tokens) > max_seq_len - special_tokens_count:
+            tokens = tokens[:(max_seq_len - special_tokens_count)]
+            slot_labels_ids = slot_labels_ids[:(max_seq_len - special_tokens_count)]
 
         # Add [SEP] token
         tokens += [sep_token]
-        slot_label_ids += [pad_token_label_id]
+        slot_labels_ids += [pad_token_label_id]
         token_type_ids = [sequence_a_segment_id] * len(tokens)
 
         # Add [CLS] token
         tokens = [cls_token] + tokens
-        slot_label_ids = [pad_token_label_id] + slot_label_ids
+        slot_labels_ids = [pad_token_label_id] + slot_labels_ids
         token_type_ids = [cls_token_segment_id] + token_type_ids
 
         input_ids = tokenizer.convert_tokens_to_ids(tokens)
@@ -177,12 +178,12 @@ def convert_examples_to_features(examples, max_seq_len, tokenizer,
         input_ids = input_ids + ([pad_token] * padding_length)
         attention_mask = attention_mask + ([0 if mask_padding_with_zero else 1] * padding_length)
         token_type_ids = token_type_ids + ([pad_token_segment_id] * padding_length)
-        slot_label_ids += ([pad_token_label_id] * padding_length)
+        slot_labels_ids += ([pad_token_label_id] * padding_length)
 
         assert len(input_ids) == max_seq_len, "Error with input length {} vs {}".format(len(input_ids), max_seq_len)
         assert len(attention_mask) == max_seq_len, "Error with attention mask length {} vs {}".format(len(attention_mask), max_seq_len)
         assert len(token_type_ids) == max_seq_len, "Error with token type length {} vs {}".format(len(token_type_ids), max_seq_len)
-        assert len(slot_label_ids) == max_seq_len, "Error with slot label length {} vs {}".format(len(slot_label_ids), max_seq_len)
+        assert len(slot_labels_ids) == max_seq_len, "Error with slot labels length {} vs {}".format(len(slot_labels_ids), max_seq_len)
 
         intent_label_id = int(example.intent_label)
 
@@ -194,14 +195,14 @@ def convert_examples_to_features(examples, max_seq_len, tokenizer,
             logger.info("attention_mask: %s" % " ".join([str(x) for x in attention_mask]))
             logger.info("token_type_ids: %s" % " ".join([str(x) for x in token_type_ids]))
             logger.info("intent_label: %s (id = %d)" % (example.intent_label, intent_label_id))
-            logger.info("slot_labels: %s" % " ".join([str(x) for x in slot_label_ids]))
+            logger.info("slot_labels: %s" % " ".join([str(x) for x in slot_labels_ids]))
 
         features.append(
             InputFeatures(input_ids=input_ids,
                           attention_mask=attention_mask,
                           token_type_ids=token_type_ids,
                           intent_label_id=intent_label_id,
-                          slot_label_ids=slot_label_ids
+                          slot_labels_ids=slot_labels_ids
                           ))
 
     return features
@@ -238,8 +239,8 @@ def load_and_cache_examples(args, tokenizer, mode):
     all_attention_mask = torch.tensor([f.attention_mask for f in features], dtype=torch.long)
     all_token_type_ids = torch.tensor([f.token_type_ids for f in features], dtype=torch.long)
     all_intent_label_ids = torch.tensor([f.intent_label_id for f in features], dtype=torch.long)
-    all_slot_label_ids = torch.tensor([f.slot_label_ids for f in features], dtype=torch.long)
+    all_slot_labels_ids = torch.tensor([f.slot_labels_ids for f in features], dtype=torch.long)
 
     dataset = TensorDataset(all_input_ids, all_attention_mask,
-                            all_token_type_ids, all_intent_label_ids, all_slot_label_ids)
+                            all_token_type_ids, all_intent_label_ids, all_slot_labels_ids)
     return dataset

@@ -3,12 +3,13 @@ import logging
 from tqdm import tqdm, trange
 
 import numpy as np
+from seqeval.metrics import precision_score, recall_score, f1_score
 import torch
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from transformers import BertConfig, AdamW, WarmupLinearSchedule
 
-from model import RBERT
-from utils import set_seed, write_prediction, compute_metrics, get_label
+from model import JointBERT
+from utils import set_seed, compute_metrics, get_intent_labels, get_slot_labels
 
 logger = logging.getLogger(__name__)
 
@@ -19,17 +20,19 @@ class Trainer(object):
         self.train_dataset = train_dataset
         self.test_dataset = test_dataset
 
-        self.label_lst = get_label(args)
-        self.num_labels = len(self.label_lst)
+        self.intent_label_lst = get_intent_labels(args)
+        self.slot_label_lst = get_slot_labels(args)
+        self.num_intent_labels = len(self.intent_label_lst)
+        self.num_slot_labels = len(self.slot_label_lst)
+        # Use cross entropy ignore index as padding label id so that only real label ids contribute to the loss later
+        self.pad_token_label_id = torch.nn.CrossEntropyLoss().ignore_index
 
-        self.bert_config = BertConfig.from_pretrained(args.pretrained_model_name, num_labels=self.num_labels, finetuning_task=args.task)
-        self.model = RBERT(self.bert_config, args)
+        self.bert_config = BertConfig.from_pretrained(args.pretrained_model_name, finetuning_task=args.task)
+        self.model = JointBERT(self.bert_config, args, self.num_intent_labels, self.num_slot_labels)
 
         # GPU or CPU
         self.device = "cuda" if torch.cuda.is_available() and not args.no_cuda else "cpu"
         self.model.to(self.device)
-
-        self.best_f1_score = 0
 
     def train(self):
         train_sampler = RandomSampler(self.train_dataset)
@@ -74,9 +77,8 @@ class Trainer(object):
                 inputs = {'input_ids': batch[0],
                           'attention_mask': batch[1],
                           'token_type_ids': batch[2],
-                          'labels': batch[3],
-                          'e1_mask': batch[4],
-                          'e2_mask': batch[5]}
+                          'intent_label_ids': batch[3],
+                          'slot_labels_ids': batch[4]}
                 outputs = self.model(**inputs)
                 loss = outputs[0]
 
@@ -84,10 +86,10 @@ class Trainer(object):
                     loss = loss / self.args.gradient_accumulation_steps
 
                 loss.backward()
-                torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.args.max_grad_norm)
 
                 tr_loss += loss.item()
                 if (step + 1) % self.args.gradient_accumulation_steps == 0:
+                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.args.max_grad_norm)
 
                     optimizer.step()
                     scheduler.step()  # Update learning rate schedule
@@ -120,9 +122,10 @@ class Trainer(object):
         logger.info("  Batch size = %d", self.args.batch_size)
         eval_loss = 0.0
         nb_eval_steps = 0
-        preds = None
-        out_label_ids = None
-        results = {}
+        intent_preds = None
+        slot_preds = None
+        out_intent_label_ids = None
+        out_slot_labels_ids = None
 
         for batch in tqdm(eval_dataloader, desc="Evaluating"):
             self.model.eval()
@@ -131,32 +134,64 @@ class Trainer(object):
                 inputs = {'input_ids': batch[0],
                           'attention_mask': batch[1],
                           'token_type_ids': batch[2],
-                          'labels': batch[3],
-                          'e1_mask': batch[4],
-                          'e2_mask': batch[5]}
+                          'intent_label_ids': batch[3],
+                          'slot_labels_ids': batch[4]}
                 outputs = self.model(**inputs)
-                tmp_eval_loss, logits = outputs[:2]
+                tmp_eval_loss, (intent_logits, slot_logits) = outputs[:2]
 
                 eval_loss += tmp_eval_loss.mean().item()
             nb_eval_steps += 1
 
-            if preds is None:
-                preds = logits.detach().cpu().numpy()
-                out_label_ids = inputs['labels'].detach().cpu().numpy()
+            # Intent prediction
+            if intent_preds is None:
+                intent_preds = intent_logits.detach().cpu().numpy()
+                out_intent_label_ids = inputs['intent_label_ids'].detach().cpu().numpy()
             else:
-                preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
-                out_label_ids = np.append(
-                    out_label_ids, inputs['labels'].detach().cpu().numpy(), axis=0)
+                intent_preds = np.append(intent_preds, intent_logits.detach().cpu().numpy(), axis=0)
+                out_intent_label_ids = np.append(
+                    out_intent_label_ids, inputs['intent_label_ids'].detach().cpu().numpy(), axis=0)
+
+            # Slot prediction
+            if slot_preds is None:
+                slot_preds = slot_logits.detach().cpu().numpy()
+                out_slot_labels_ids = inputs["slot_labels_ids"].detach().cpu().numpy()
+            else:
+                slot_preds = np.append(slot_preds, slot_logits.detach().cpu().numpy(), axis=0)
+                out_slot_labels_ids = np.append(out_slot_labels_ids, inputs["slot_labels_ids"].detach().cpu().numpy(), axis=0)
 
         eval_loss = eval_loss / nb_eval_steps
-        preds = np.argmax(preds, axis=1)
-        result = compute_metrics(preds, out_label_ids)
-        results.update(result)
-        logger.info("***** Eval results *****")
-        for key in sorted(result.keys()):
-            logger.info("  %s = %s", key, str(result[key]))
+        results = {
+            "loss": eval_loss
+        }
+        # Intent result
+        intent_preds = np.argmax(intent_preds, axis=1)
+        intent_result = compute_metrics(intent_preds, out_intent_label_ids)
+        results.update(intent_result)
+        # Slot result
+        slot_preds = np.argmax(slot_preds, axis=2)
 
-        write_prediction(self.args, os.path.join(self.args.eval_dir, "proposed_answers.txt"), preds)
+        slot_label_map = {i: label for i, label in enumerate(self.slot_label_lst)}
+
+        out_label_list = [[] for _ in range(out_slot_labels_ids.shape[0])]
+        preds_list = [[] for _ in range(out_slot_labels_ids.shape[0])]
+
+        for i in range(out_slot_labels_ids.shape[0]):
+            for j in range(out_slot_labels_ids.shape[1]):
+                if out_slot_labels_ids[i, j] != self.pad_token_label_id:
+                    out_label_list[i].append(slot_label_map[out_slot_labels_ids[i][j]])
+                    preds_list[i].append(slot_label_map[slot_preds[i][j]])
+
+        slot_result = {
+            "slot_precision": precision_score(out_label_list, preds_list),
+            "slot_recall": recall_score(out_label_list, preds_list),
+            "slot_f1": f1_score(out_label_list, preds_list)
+        }
+        results.update(slot_result)
+
+        logger.info("***** Eval results *****")
+        for key in sorted(results.keys()):
+            logger.info("  %s = %s", key, str(results[key]))
+
         return results
 
     def save_model(self):
@@ -178,7 +213,7 @@ class Trainer(object):
         try:
             self.bert_config = BertConfig.from_pretrained(self.args.model_dir)
             logger.info("***** Bert config loaded *****")
-            self.model = RBERT.from_pretrained(self.args.model_dir, config=self.bert_config, args=self.args)
+            self.model = JointBERT.from_pretrained(self.args.model_dir, config=self.bert_config, args=self.args)
             self.model.to(self.device)
             logger.info("***** Model Loaded *****")
         except:

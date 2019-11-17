@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 from transformers import BertModel, BertPreTrainedModel
 
@@ -26,15 +25,16 @@ class SlotClassifier(nn.Module):
 
 
 class JointBERT(BertPreTrainedModel):
-    def __init__(self, bert_config, args):
+    def __init__(self, bert_config, args, num_intent_labels, num_slot_labels):
         super(JointBERT, self).__init__(bert_config)
-        self.args = args
+        self.num_intent_labels = num_intent_labels
+        self.num_slot_labels = num_slot_labels
         self.bert = BertModel.from_pretrained(args.pretrained_model_name, config=bert_config)  # Load pretrained bert
 
-        self.intent_classifier = IntentClassifier(bert_config.hidden_size, args.num_intent_labels, args.dropout_rate)
-        self.slot_classifier = SlotClassifier(bert_config.hidden_size, args.num_slot_labels, args.dropout_rate)
+        self.intent_classifier = IntentClassifier(bert_config.hidden_size, num_intent_labels, args.dropout_rate)
+        self.slot_classifier = SlotClassifier(bert_config.hidden_size, num_slot_labels, args.dropout_rate)
 
-    def forward(self, input_ids, attention_mask, token_type_ids, intent_labels, slot_labels):
+    def forward(self, input_ids, attention_mask, token_type_ids, intent_label_ids, slot_labels_ids):
         outputs = self.bert(input_ids, attention_mask=attention_mask,
                             token_type_ids=token_type_ids)  # sequence_output, pooled_output, (hidden_states), (attentions)
         sequence_output = outputs[0]
@@ -47,27 +47,27 @@ class JointBERT(BertPreTrainedModel):
 
         total_loss = 0
         # 1. Intent Softmax
-        if intent_labels is not None:
-            if self.args.num_intent_labels == 1:
+        if intent_label_ids is not None:
+            if self.num_intent_labels == 1:
                 intent_loss_fct = nn.MSELoss()
-                intent_loss = intent_loss_fct(intent_logits.view(-1), intent_labels.view(-1))
+                intent_loss = intent_loss_fct(intent_logits.view(-1), intent_label_ids.view(-1))
             else:
                 intent_loss_fct = nn.CrossEntropyLoss()
-                intent_loss = intent_loss_fct(intent_logits.view(-1, self.args.num_intent_labels), intent_labels.view(-1))
+                intent_loss = intent_loss_fct(intent_logits.view(-1, self.num_intent_labels), intent_label_ids.view(-1))
             total_loss += intent_loss
 
         # 2. Slot Softmax
-        if slot_labels is not None:
+        if slot_labels_ids is not None:
             slot_loss_fct = nn.CrossEntropyLoss()
             # Only keep active parts of the loss
             if attention_mask is not None:
                 active_loss = attention_mask.view(-1) == 1
                 active_logits = slot_logits.view(-1, self.num_slot_labels)[active_loss]
-                active_labels = slot_labels.view(-1)[active_loss]
+                active_labels = slot_labels_ids.view(-1)[active_loss]
                 slot_loss = slot_loss_fct(active_logits, active_labels)
             else:
-                slot_loss = slot_loss_fct(slot_logits.view(-1, self.num_slot_labels), slot_labels.view(-1))
-            total_loss += slot_loss  # TODO: loss weights(proportion)
+                slot_loss = slot_loss_fct(slot_logits.view(-1, self.num_slot_labels), slot_labels_ids.view(-1))
+            total_loss += slot_loss  # TODO: loss weights(=proportion)
 
         outputs = (total_loss,) + outputs
 
