@@ -13,6 +13,8 @@
 - python>=3.5
 - torch==1.1.0
 - transformers==2.1.1
+- scikit-learn>=0.20.0
+- seqeval>=0.0.12
 
 ## Dataset
 
@@ -33,7 +35,7 @@ $ python3 main.py --do_train --do_eval --dataset {dataset_name}
 
 ## TODO
 
-- [X] Model (IntentClassifier, SlotClassifier, JointBERT)
+- [x] Model (IntentClassifier, SlotClassifier, JointBERT)
 - [ ] Find Dataset Paper
 - [ ] Transformers NER analysis (Data loading by word level, BertForTokenClassification)
 - [ ] CRF Layer

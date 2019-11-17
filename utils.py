@@ -7,29 +7,17 @@ import numpy as np
 from sklearn.metrics import f1_score
 from transformers.tokenization_bert import BertTokenizer
 
-ADDITIONAL_SPECIAL_TOKENS = ["<e1>", "</e1>", "<e2>", "</e2>"]
+
+def get_intent_labels(args):
+    return [label.strip() for label in open(os.path.join(args.data_dir, args.task, args.intent_label_file), 'r', encoding='utf-8')]
 
 
-def get_label(args):
-    return [label.strip() for label in open(os.path.join(args.data_dir, args.label_file), 'r', encoding='utf-8')]
+def get_slot_labels(args):
+    return [label.strip() for label in open(os.path.join(args.data_dir, args.task, args.slot_label_file), 'r', encoding='utf-8')]
 
 
 def load_tokenizer(args):
-    tokenizer = BertTokenizer.from_pretrained(args.pretrained_model_name)
-    tokenizer.add_special_tokens({"additional_special_tokens": ADDITIONAL_SPECIAL_TOKENS})
-    return tokenizer
-
-
-def write_prediction(args, output_file, preds):
-    """
-    For official evaluation script
-    :param output_file: prediction_file_path (e.g. eval/proposed_answers.txt)
-    :param preds: [0,1,0,2,18,...]
-    """
-    relation_labels = get_label(args)
-    with open(output_file, 'w', encoding='utf-8') as f:
-        for idx, pred in enumerate(preds):
-            f.write("{}\t{}\n".format(8001 + idx, relation_labels[pred]))
+    return BertTokenizer.from_pretrained(args.pretrained_model_name)
 
 
 def init_logger():
