@@ -26,8 +26,8 @@
 | ATIS  | 4,478  | 500 | 893  | 21            | 120         |
 | Snips | 13,084 | 700 | 700  | 7             | 72          |
 
-- Number of labels are based on training dataset.
-- Add `UNK` for labels (For intent and slot labels which are only shown in dev, test dataset)
+- The number of labels are based on the _train_ dataset.
+- Add `UNK` for labels (For intent and slot labels which are only shown in _dev_ and _test_ dataset)
 
 ## Usage
 
