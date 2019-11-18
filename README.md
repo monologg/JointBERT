@@ -46,6 +46,15 @@ $ python3 main.py --task snips \
                   --do_train --do_eval
 ```
 
+## Results
+
+Run 5 epochs each
+
+|       | Intent acc (%) | Slot F1 (%) |
+| ----- | -------------- | ----------- |
+| ATIS  | 97.87          | 95.46       |
+| Snips | 98.29          | 96.05       |
+
 ## References
 
 - [Huggingface Transformers](https://github.com/huggingface/transformers)
