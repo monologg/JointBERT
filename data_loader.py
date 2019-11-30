@@ -5,7 +5,6 @@ import json
 import logging
 
 import torch
-from torch.nn import CrossEntropyLoss
 from torch.utils.data import TensorDataset
 
 from utils import get_intent_labels, get_slot_labels
@@ -228,7 +227,7 @@ def load_and_cache_examples(args, tokenizer, mode):
             raise Exception("For mode, Only train, dev, test is available")
 
         # Use cross entropy ignore index as padding label id so that only real label ids contribute to the loss later
-        pad_token_label_id = CrossEntropyLoss().ignore_index
+        pad_token_label_id = args.ignore_index
         features = convert_examples_to_features(examples, args.max_seq_len, tokenizer,
                                                 pad_token_label_id=pad_token_label_id)
         logger.info("Saving features into cached file %s", cached_features_file)

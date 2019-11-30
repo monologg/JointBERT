@@ -55,5 +55,7 @@ if __name__ == '__main__':
     parser.add_argument("--no_lower_case", action="store_true", help="Whether not to lowercase the text (For cased model)")
     parser.add_argument("--no_cuda", action="store_true", help="Avoid using CUDA when available")
 
+    parser.add_argument("--ignore_index", default=-100, type=int, help='Specifies a target value that is ignored and does not contribute to the input gradient')
+
     args = parser.parse_args()
     main(args)
