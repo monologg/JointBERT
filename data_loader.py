@@ -129,6 +129,7 @@ def convert_examples_to_features(examples, max_seq_len, tokenizer,
                                  cls_token='[CLS]',
                                  cls_token_segment_id=0,
                                  sep_token='[SEP]',
+                                 unk_token='[UNK]',
                                  pad_token=0,
                                  pad_token_segment_id=0,
                                  sequence_a_segment_id=0,
@@ -144,7 +145,7 @@ def convert_examples_to_features(examples, max_seq_len, tokenizer,
         for word, slot_label in zip(example.words, example.slot_labels):
             word_tokens = tokenizer.tokenize(word)
             if not word_tokens:
-                word_tokens = ["[UNK]"]  # For handling the bad-encoded word
+                word_tokens = [unk_token]  # For handling the bad-encoded word
             tokens.extend(word_tokens)
             # Use the real label id for the first token of the word, and padding ids for the remaining tokens
             slot_labels_ids.extend([int(slot_label)] + [pad_token_label_id] * (len(word_tokens) - 1))
@@ -222,8 +223,13 @@ def load_examples(args, tokenizer, mode):
 
     # Use cross entropy ignore index as padding label id so that only real label ids contribute to the loss later
     pad_token_label_id = args.ignore_index
-    features = convert_examples_to_features(examples, args.max_seq_len, tokenizer,
-                                            pad_token_label_id=pad_token_label_id)
+    if args.model_type == 'roberta':
+        features = convert_examples_to_features(examples, args.max_seq_len, tokenizer,
+                                                cls_token='<s>', sep_token='</s>', unk_token='<unk>', pad_token=1,
+                                                pad_token_label_id=pad_token_label_id)
+    else:
+        features = convert_examples_to_features(examples, args.max_seq_len, tokenizer,
+                                                pad_token_label_id=pad_token_label_id)
 
     # Convert to Tensors and build dataset
     all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)

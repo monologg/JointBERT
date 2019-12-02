@@ -33,15 +33,18 @@
 
 ```bash
 $ python3 main.py --task {task_name} \
+                  --model_type {model_type} \
                   --model_dir {model_dir_name} \
                   --do_train --do_eval
 
 # For ATIS
 $ python3 main.py --task atis \
+                  --model_type bert \
                   --model_dir atis_model \
                   --do_train --do_eval
 # For Snips
 $ python3 main.py --task snips \
+                  --model_type bert \
                   --model_dir snips_model \
                   --do_train --do_eval
 ```
@@ -50,10 +53,14 @@ $ python3 main.py --task snips \
 
 Run 5 epochs each
 
-|       | Intent acc (%) | Slot F1 (%) |
-| ----- | -------------- | ----------- |
-| ATIS  | 97.87          | 95.46       |
-| Snips | 98.29          | 96.05       |
+|       |            | Intent acc (%) | Slot F1 (%) |
+| ----- | ---------- | -------------- | ----------- |
+| ATIS  | BERT       | 97.87          | 95.46       |
+|       | DistilBERT | 97.54          | 94.89       |
+|       | RoBERTa    | 97.64          | 94.94       |
+| Snips | BERT       | 98.29          | 96.05       |
+|       | DistilBERT | TBD            | TBD         |
+|       | RoBERTa    | TBD            | TBD         |
 
 ## Updates
 
