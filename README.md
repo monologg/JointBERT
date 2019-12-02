@@ -55,6 +55,10 @@ Run 5 epochs each
 | ATIS  | 97.87          | 95.46       |
 | Snips | 98.29          | 96.05       |
 
+## Updates
+
+- 2019/12/03: Add DistilBert and RoBERTa
+
 ## References
 
 - [Huggingface Transformers](https://github.com/huggingface/transformers)

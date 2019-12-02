@@ -5,7 +5,28 @@ import logging
 import torch
 import numpy as np
 from sklearn.metrics import f1_score
-from transformers.tokenization_bert import BertTokenizer
+from transformers import BertTokenizer, BertConfig, DistilBertConfig, DistilBertTokenizer, RobertaConfig, RobertaTokenizer, \
+    BertModel, DistilBertModel, RobertaModel
+
+PRETRAINED_MODEL_MAP = {
+    'bert': BertModel,
+    'distilbert': DistilBertModel,
+    'roberta': RobertaModel
+}
+
+from model import JointBERT, JointDistilBERT
+
+MODEL_CLASSES = {
+    'bert': (BertConfig, JointBERT, BertTokenizer),
+    'distilbert': (DistilBertConfig, JointDistilBERT, DistilBertTokenizer),
+    'roberta': (RobertaConfig, JointBERT, RobertaTokenizer),
+}
+
+MODEL_PATH_MAP = {
+    'bert': 'bert-base-uncased',
+    'distilbert': 'distilbert-base-uncased',
+    'roberta': 'roberta-base'
+}
 
 
 def get_intent_labels(args):
@@ -17,7 +38,7 @@ def get_slot_labels(args):
 
 
 def load_tokenizer(args):
-    return BertTokenizer.from_pretrained(args.pretrained_model_name)
+    return MODEL_CLASSES[args.model_type][2].from_pretrained(args.model_name_or_path)
 
 
 def init_logger():

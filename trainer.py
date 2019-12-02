@@ -8,8 +8,7 @@ import torch
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from transformers import BertConfig, AdamW, WarmupLinearSchedule
 
-from model import JointBERT
-from utils import set_seed, compute_metrics, get_intent_labels, get_slot_labels
+from utils import set_seed, compute_metrics, get_intent_labels, get_slot_labels, MODEL_CLASSES
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +27,9 @@ class Trainer(object):
         # Use cross entropy ignore index as padding label id so that only real label ids contribute to the loss later
         self.pad_token_label_id = torch.nn.CrossEntropyLoss().ignore_index
 
-        self.bert_config = BertConfig.from_pretrained(args.pretrained_model_name, finetuning_task=args.task)
-        self.model = JointBERT(self.bert_config, args, self.num_intent_labels, self.num_slot_labels)
+        self.config_class, self.model_class, _ = MODEL_CLASSES[args.model_type]
+        self.bert_config = self.config_class.from_pretrained(args.model_name_or_path, finetuning_task=args.task)
+        self.model = self.model_class(self.bert_config, args, self.num_intent_labels, self.num_slot_labels)
 
         # GPU or CPU
         self.device = "cuda" if torch.cuda.is_available() and not args.no_cuda else "cpu"
@@ -77,9 +77,10 @@ class Trainer(object):
                 batch = tuple(t.to(self.device) for t in batch)  # GPU or CPU
                 inputs = {'input_ids': batch[0],
                           'attention_mask': batch[1],
-                          'token_type_ids': batch[2],
                           'intent_label_ids': batch[3],
                           'slot_labels_ids': batch[4]}
+                if self.args.model_type != 'distilbert':
+                    inputs['token_type_ids'] = batch[2]
                 outputs = self.model(**inputs)
                 loss = outputs[0]
 
@@ -143,9 +144,10 @@ class Trainer(object):
             with torch.no_grad():
                 inputs = {'input_ids': batch[0],
                           'attention_mask': batch[1],
-                          'token_type_ids': batch[2],
                           'intent_label_ids': batch[3],
                           'slot_labels_ids': batch[4]}
+                if self.args.model_type != 'distilbert':
+                    inputs['token_type_ids'] = batch[2]
                 outputs = self.model(**inputs)
                 tmp_eval_loss, (intent_logits, slot_logits) = outputs[:2]
 
@@ -220,10 +222,11 @@ class Trainer(object):
             raise Exception("Model doesn't exists! Train first!")
 
         try:
-            self.bert_config = BertConfig.from_pretrained(self.args.model_dir)
-            logger.info("***** Bert config loaded *****")
-            self.model = JointBERT.from_pretrained(self.args.model_dir, config=self.bert_config,
-                                                   args=self.args, num_intent_labels=self.num_intent_labels, num_slot_labels=self.num_slot_labels)
+            self.bert_config = self.config_class.from_pretrained(self.args.model_dir)
+            logger.info("***** Config loaded *****")
+            self.model = self.model_class.from_pretrained(self.args.model_dir, config=self.bert_config,
+                                                          args=self.args, num_intent_labels=self.num_intent_labels,
+                                                          num_slot_labels=self.num_slot_labels)
             self.model.to(self.device)
             logger.info("***** Model Loaded *****")
         except:

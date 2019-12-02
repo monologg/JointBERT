@@ -1,16 +1,16 @@
 import argparse
 
 from trainer import Trainer
-from utils import init_logger, load_tokenizer
-from data_loader import load_and_cache_examples
+from utils import init_logger, load_tokenizer, MODEL_CLASSES, MODEL_PATH_MAP
+from data_loader import load_examples
 
 
 def main(args):
     init_logger()
     tokenizer = load_tokenizer(args)
-    train_dataset = load_and_cache_examples(args, tokenizer, mode="train")
-    dev_dataset = load_and_cache_examples(args, tokenizer, mode="dev")
-    test_dataset = load_and_cache_examples(args, tokenizer, mode="test")
+    train_dataset = load_examples(args, tokenizer, mode="train")
+    dev_dataset = load_examples(args, tokenizer, mode="dev")
+    test_dataset = load_examples(args, tokenizer, mode="test")
     trainer = Trainer(args, train_dataset, dev_dataset, test_dataset)
 
     if args.do_train:
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     parser.add_argument("--intent_label_file", default="intent_label.txt", type=str, help="Intent Label file")
     parser.add_argument("--slot_label_file", default="slot_label.txt", type=str, help="Slot Label file")
 
-    parser.add_argument("--pretrained_model_name", default="bert-base-uncased", required=False, help="Pretrained model name")
+    parser.add_argument("--model_type", default="bert", type=str, help="Model type selected in the list: " + ", ".join(MODEL_CLASSES.keys()))
 
     parser.add_argument('--seed', type=int, default=42, help="random seed for initialization")
     parser.add_argument("--batch_size", default=16, type=int, help="Batch size for training and evaluation.")
@@ -56,4 +56,6 @@ if __name__ == '__main__':
     parser.add_argument("--no_cuda", action="store_true", help="Avoid using CUDA when available")
 
     args = parser.parse_args()
+
+    args.model_name_or_path = MODEL_PATH_MAP[args.model_type]
     main(args)
