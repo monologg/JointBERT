@@ -58,6 +58,7 @@ class SlotClassifier(nn.Module):
 class JointBERT(BertPreTrainedModel):
     def __init__(self, bert_config, args, num_intent_labels, num_slot_labels):
         super(JointBERT, self).__init__(bert_config)
+        self.args = args
         self.num_intent_labels = num_intent_labels
         self.num_slot_labels = num_slot_labels
         self.bert = PRETRAINED_MODEL_MAP[args.model_type].from_pretrained(args.model_name_or_path, config=bert_config)  # Load pretrained bert
@@ -89,7 +90,7 @@ class JointBERT(BertPreTrainedModel):
 
         # 2. Slot Softmax
         if slot_labels_ids is not None:
-            slot_loss_fct = nn.CrossEntropyLoss()
+            slot_loss_fct = nn.CrossEntropyLoss(ignore_index=self.args.ignore_index)
             # Only keep active parts of the loss
             if attention_mask is not None:
                 active_loss = attention_mask.view(-1) == 1

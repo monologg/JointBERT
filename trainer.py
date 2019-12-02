@@ -25,7 +25,7 @@ class Trainer(object):
         self.num_intent_labels = len(self.intent_label_lst)
         self.num_slot_labels = len(self.slot_label_lst)
         # Use cross entropy ignore index as padding label id so that only real label ids contribute to the loss later
-        self.pad_token_label_id = torch.nn.CrossEntropyLoss().ignore_index
+        self.pad_token_label_id = args.ignore_index
 
         self.config_class, self.model_class, _ = MODEL_CLASSES[args.model_type]
         self.bert_config = self.config_class.from_pretrained(args.model_name_or_path, finetuning_task=args.task)
