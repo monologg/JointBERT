@@ -51,16 +51,16 @@ $ python3 main.py --task snips \
 
 ## Results
 
-Run 5 epochs each
+Run 5 epochs each (No hyperparameter tuning)
 
-|       |            | Intent acc (%) | Slot F1 (%) |
-| ----- | ---------- | -------------- | ----------- |
-| ATIS  | BERT       | 97.87          | 95.46       |
-|       | DistilBERT | 97.54          | 94.89       |
-|       | RoBERTa    | 97.64          | 94.94       |
-| Snips | BERT       | 98.29          | 96.05       |
-|       | DistilBERT | TBD            | TBD         |
-|       | RoBERTa    | TBD            | TBD         |
+|           |            | Intent acc (%) | Slot F1 (%) |
+| --------- | ---------- | -------------- | ----------- |
+| **ATIS**  | BERT       | 97.87          | 95.46       |
+|           | DistilBERT | 97.54          | 94.89       |
+|           | RoBERTa    | 97.64          | 94.94       |
+| **Snips** | BERT       | 98.29          | 96.05       |
+|           | DistilBERT | 98.42          | 94.10       |
+|           | RoBERTa    | 98.14          | 94.60       |
 
 ## Updates
 
