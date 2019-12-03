@@ -126,14 +126,21 @@ processors = {
 
 def convert_examples_to_features(examples, max_seq_len, tokenizer,
                                  pad_token_label_id=-100,
-                                 cls_token='[CLS]',
                                  cls_token_segment_id=0,
-                                 sep_token='[SEP]',
-                                 unk_token='[UNK]',
-                                 pad_token=0,
                                  pad_token_segment_id=0,
                                  sequence_a_segment_id=0,
                                  mask_padding_with_zero=True):
+    # Setting based on the current model type
+    cls_token = tokenizer.cls_token
+    sep_token = tokenizer.sep_token
+    unk_token = tokenizer.unk_token
+    pad_token_id = tokenizer.pad_token_id
+
+    print("cls_token:", cls_token)
+    print("sep_token:", sep_token)
+    print("unk_token:", unk_token)
+    print("pad_token_id:", pad_token_id)
+
     features = []
     for (ex_index, example) in enumerate(examples):
         if ex_index % 5000 == 0:
@@ -174,7 +181,7 @@ def convert_examples_to_features(examples, max_seq_len, tokenizer,
 
         # Zero-pad up to the sequence length.
         padding_length = max_seq_len - len(input_ids)
-        input_ids = input_ids + ([pad_token] * padding_length)
+        input_ids = input_ids + ([pad_token_id] * padding_length)
         attention_mask = attention_mask + ([0 if mask_padding_with_zero else 1] * padding_length)
         token_type_ids = token_type_ids + ([pad_token_segment_id] * padding_length)
         slot_labels_ids = slot_labels_ids + ([pad_token_label_id] * padding_length)
@@ -223,13 +230,8 @@ def load_examples(args, tokenizer, mode):
 
     # Use cross entropy ignore index as padding label id so that only real label ids contribute to the loss later
     pad_token_label_id = args.ignore_index
-    if args.model_type == 'roberta':
-        features = convert_examples_to_features(examples, args.max_seq_len, tokenizer,
-                                                cls_token='<s>', sep_token='</s>', unk_token='<unk>', pad_token=1,
-                                                pad_token_label_id=pad_token_label_id)
-    else:
-        features = convert_examples_to_features(examples, args.max_seq_len, tokenizer,
-                                                pad_token_label_id=pad_token_label_id)
+    features = convert_examples_to_features(examples, args.max_seq_len, tokenizer,
+                                            pad_token_label_id=pad_token_label_id)
 
     # Convert to Tensors and build dataset
     all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
