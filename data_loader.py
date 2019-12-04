@@ -136,11 +136,6 @@ def convert_examples_to_features(examples, max_seq_len, tokenizer,
     unk_token = tokenizer.unk_token
     pad_token_id = tokenizer.pad_token_id
 
-    print("cls_token:", cls_token)
-    print("sep_token:", sep_token)
-    print("unk_token:", unk_token)
-    print("pad_token_id:", pad_token_id)
-
     features = []
     for (ex_index, example) in enumerate(examples):
         if ex_index % 5000 == 0:
