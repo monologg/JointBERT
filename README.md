@@ -15,7 +15,7 @@
 
 - python>=3.5
 - torch==1.1.0
-- transformers==2.1.1
+- transformers==2.2.1
 - scikit-learn>=0.20.0
 - seqeval>=0.0.12
 
