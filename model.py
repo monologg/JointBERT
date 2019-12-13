@@ -1,6 +1,7 @@
 import torch.nn as nn
 from transformers import BertPreTrainedModel, DistilBertConfig, PreTrainedModel, BertModel, DistilBertModel
 from transformers.modeling_distilbert import DistilBertPreTrainedModel
+from transformers.modeling_albert import AlbertPreTrainedModel
 from utils import PRETRAINED_MODEL_MAP
 
 

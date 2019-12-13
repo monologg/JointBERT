@@ -6,12 +6,13 @@ import torch
 import numpy as np
 from sklearn.metrics import f1_score
 from transformers import BertTokenizer, BertConfig, DistilBertConfig, DistilBertTokenizer, RobertaConfig, RobertaTokenizer, \
-    BertModel, DistilBertModel, RobertaModel
+    BertModel, DistilBertModel, RobertaModel, AlbertConfig, AlbertTokenizer, AlbertModel
 
 PRETRAINED_MODEL_MAP = {
     'bert': BertModel,
     'distilbert': DistilBertModel,
-    'roberta': RobertaModel
+    'roberta': RobertaModel,
+    'albert': AlbertModel
 }
 
 from model import JointBERT, JointDistilBERT
@@ -20,12 +21,14 @@ MODEL_CLASSES = {
     'bert': (BertConfig, JointBERT, BertTokenizer),
     'distilbert': (DistilBertConfig, JointDistilBERT, DistilBertTokenizer),
     'roberta': (RobertaConfig, JointBERT, RobertaTokenizer),
+    'albert': (AlbertConfig, JointBERT, AlbertTokenizer)
 }
 
 MODEL_PATH_MAP = {
     'bert': 'bert-base-uncased',
     'distilbert': 'distilbert-base-uncased',
-    'roberta': 'roberta-base'
+    'roberta': 'roberta-base',
+    'albert': 'albert-large-v1'
 }
 
 

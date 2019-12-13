@@ -58,13 +58,16 @@ Run 5 epochs each (No hyperparameter tuning)
 | **ATIS**  | BERT       | 97.87          | 95.46       |
 |           | DistilBERT | 97.54          | 94.89       |
 |           | RoBERTa    | 97.64          | 94.94       |
+|           | ALBERT     | 97.42          | 94.91       |
 | **Snips** | BERT       | 98.29          | 96.05       |
 |           | DistilBERT | 98.42          | 94.10       |
 |           | RoBERTa    | 98.14          | 94.60       |
+|           | ALBERT     | 98.14          | 95.95       |
 
 ## Updates
 
-- 2019/12/03: Add DistilBert and RoBERTa
+- 2019/12/03: Add DistilBert and RoBERTa result
+- 2019/12/14: Add Albert(large v1) result
 
 ## References
 
