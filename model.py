@@ -1,8 +1,12 @@
 import torch.nn as nn
-from transformers import BertPreTrainedModel, DistilBertConfig, PreTrainedModel, BertModel, DistilBertModel
-from transformers.modeling_distilbert import DistilBertPreTrainedModel
-from transformers.modeling_albert import AlbertPreTrainedModel
-from utils import PRETRAINED_MODEL_MAP
+from transformers import BertPreTrainedModel, BertModel, DistilBertModel, RobertaModel, AlbertModel, DistilBertPreTrainedModel
+
+PRETRAINED_MODEL_MAP = {
+    'bert': BertModel,
+    'distilbert': DistilBertModel,
+    'roberta': RobertaModel,
+    'albert': AlbertModel
+}
 
 
 class IntentClassifier(nn.Module):

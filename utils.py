@@ -6,14 +6,7 @@ import torch
 import numpy as np
 from sklearn.metrics import f1_score
 from transformers import BertTokenizer, BertConfig, DistilBertConfig, DistilBertTokenizer, RobertaConfig, RobertaTokenizer, \
-    BertModel, DistilBertModel, RobertaModel, AlbertConfig, AlbertTokenizer, AlbertModel
-
-PRETRAINED_MODEL_MAP = {
-    'bert': BertModel,
-    'distilbert': DistilBertModel,
-    'roberta': RobertaModel,
-    'albert': AlbertModel
-}
+    AlbertConfig, AlbertTokenizer
 
 from model import JointBERT, JointDistilBERT
 
@@ -74,3 +67,7 @@ def acc_and_f1(preds, labels, average='macro'):
         "intent_acc": acc,
         "intent_f1": f1,
     }
+
+
+def read_prediction_text(args):
+    return [text.strip() for text in open(os.path.join(args.pred_dir, args.pred_input_file), 'r', encoding='utf-8')]

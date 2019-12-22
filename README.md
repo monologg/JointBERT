@@ -29,7 +29,7 @@
 - The number of labels are based on the _train_ dataset.
 - Add `UNK` for labels (For intent and slot labels which are only shown in _dev_ and _test_ dataset)
 
-## Usage
+## Training & Evaluation
 
 ```bash
 $ python3 main.py --task {task_name} \
@@ -47,6 +47,20 @@ $ python3 main.py --task snips \
                   --model_type bert \
                   --model_dir snips_model \
                   --do_train --do_eval
+```
+
+## Prediction
+
+- There should be a trained model before running prediction.
+- You should write sentences in `preds.txt` in `preds` directory.
+
+```bash
+$ python3 main.py --task snips \
+                  --model_type bert \
+                  --model_dir snips_model \
+                  --do_pred \
+                  --pred_dir preds \
+                  --pred_input_file preds.txt
 ```
 
 ## Results
@@ -68,6 +82,7 @@ Run 5 epochs each (No hyperparameter tuning)
 
 - 2019/12/03: Add DistilBert and RoBERTa result
 - 2019/12/14: Add Albert(large v1) result
+- 2019/12/22: Available to predict sentences
 
 ## References
 
