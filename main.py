@@ -1,16 +1,25 @@
 import argparse
 
 from trainer import Trainer
-from utils import init_logger, load_tokenizer, MODEL_CLASSES, MODEL_PATH_MAP
+from utils import init_logger, load_tokenizer, read_prediction_text, MODEL_CLASSES, MODEL_PATH_MAP
 from data_loader import load_examples
 
 
 def main(args):
     init_logger()
     tokenizer = load_tokenizer(args)
-    train_dataset = load_examples(args, tokenizer, mode="train")
-    dev_dataset = load_examples(args, tokenizer, mode="dev")
-    test_dataset = load_examples(args, tokenizer, mode="test")
+
+    train_dataset = None
+    dev_dataset = None
+    test_dataset = None
+
+    if args.do_train:
+        train_dataset = load_examples(args, tokenizer, mode="train")
+        dev_dataset = load_examples(args, tokenizer, mode="dev")
+
+    if args.do_eval:
+        test_dataset = load_examples(args, tokenizer, mode="test")
+
     trainer = Trainer(args, train_dataset, dev_dataset, test_dataset)
 
     if args.do_train:
@@ -18,8 +27,12 @@ def main(args):
 
     if args.do_eval:
         trainer.load_model()
-        trainer.evaluate("dev")
         trainer.evaluate("test")
+
+    if args.do_pred:
+        trainer.load_model()
+        texts = read_prediction_text(args)
+        trainer.predict(texts, tokenizer)
 
 
 if __name__ == '__main__':
@@ -55,7 +68,14 @@ if __name__ == '__main__':
     parser.add_argument("--no_lower_case", action="store_true", help="Whether not to lowercase the text (For cased model)")
     parser.add_argument("--no_cuda", action="store_true", help="Avoid using CUDA when available")
 
-    parser.add_argument("--ignore_index", default=-100, type=int, help='Specifies a target value that is ignored and does not contribute to the input gradient')
+    parser.add_argument("--ignore_index", default=-100, type=int,
+                        help='Specifies a target value that is ignored and does not contribute to the input gradient')
+
+    # For prediction
+    parser.add_argument("--pred_dir", default="./preds", type=str, help="The input prediction dir")
+    parser.add_argument("--pred_input_file", default="preds.txt", type=str, help="The input text file of lines for prediction")
+    parser.add_argument("--pred_output_file", default="outputs.txt", type=str, help="The output file of prediction")
+    parser.add_argument("--do_pred", action="store_true", help="Whether to predict the sentences")
 
     args = parser.parse_args()
 

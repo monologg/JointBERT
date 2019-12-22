@@ -74,3 +74,7 @@ def acc_and_f1(preds, labels, average='macro'):
         "intent_acc": acc,
         "intent_f1": f1,
     }
+
+
+def read_prediction_text(args):
+    return [text.strip() for text in open(os.path.join(args.pred_dir, args.pred_input_file), 'r', encoding='utf-8')]
