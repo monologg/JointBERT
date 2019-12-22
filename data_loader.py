@@ -19,7 +19,7 @@ class InputExample(object):
         guid: Unique id for the example.
         words: list. The words of the sequence.
         intent_label: (Optional) string. The intent label of the example.
-        slot_labels: (Optional) string. The slot labels of the example.
+        slot_labels: (Optional) list. The slot labels of the example.
     """
 
     def __init__(self, guid, words, intent_label=None, slot_labels=None):
