@@ -76,10 +76,6 @@ class Trainer(object):
                 self.model.train()
                 batch = tuple(t.to(self.device) for t in batch)  # GPU or CPU
 
-                logger.info("batch[0].size():", batch[0].size())
-                logger.info("batch[1].size():", batch[1].size())
-                logger.info("batch[2].size():", batch[2].size())
-
                 inputs = {'input_ids': batch[0],
                           'attention_mask': batch[1],
                           'intent_label_ids': batch[3],
