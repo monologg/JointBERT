@@ -6,14 +6,7 @@ import torch
 import numpy as np
 from sklearn.metrics import f1_score
 from transformers import BertTokenizer, BertConfig, DistilBertConfig, DistilBertTokenizer, RobertaConfig, RobertaTokenizer, \
-    BertModel, DistilBertModel, RobertaModel, AlbertConfig, AlbertTokenizer, AlbertModel
-
-PRETRAINED_MODEL_MAP = {
-    'bert': BertModel,
-    'distilbert': DistilBertModel,
-    'roberta': RobertaModel,
-    'albert': AlbertModel
-}
+    AlbertConfig, AlbertTokenizer
 
 from model import JointBERT, JointDistilBERT
 
