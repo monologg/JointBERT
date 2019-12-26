@@ -166,10 +166,18 @@ class Trainer(object):
 
             # Slot prediction
             if slot_preds is None:
-                slot_preds = slot_logits.detach().cpu().numpy()
+                if self.args.use_crf:
+                    slot_preds = np.array(self.model.crf.decode(slot_logits))
+                else:
+                    slot_preds = slot_logits.detach().cpu().numpy()
+
                 out_slot_labels_ids = inputs["slot_labels_ids"].detach().cpu().numpy()
             else:
-                slot_preds = np.append(slot_preds, slot_logits.detach().cpu().numpy(), axis=0)
+                if self.args.use_crf:
+                    slot_preds = np.append(slot_preds, np.array(self.model.crf.decode(slot_logits)), axis=0)
+                else:
+                    slot_preds = np.append(slot_preds, slot_logits.detach().cpu().numpy(), axis=0)
+
                 out_slot_labels_ids = np.append(out_slot_labels_ids, inputs["slot_labels_ids"].detach().cpu().numpy(), axis=0)
 
         eval_loss = eval_loss / nb_eval_steps
@@ -182,7 +190,8 @@ class Trainer(object):
         results.update(intent_result)
 
         # Slot result
-        slot_preds = np.argmax(slot_preds, axis=2)
+        if not self.args.use_crf:
+            slot_preds = np.argmax(slot_preds, axis=2)
         slot_label_map = {i: label for i, label in enumerate(self.slot_label_lst)}
         out_label_list = [[] for _ in range(out_slot_labels_ids.shape[0])]
         preds_list = [[] for _ in range(out_slot_labels_ids.shape[0])]
@@ -346,13 +355,11 @@ class Trainer(object):
         out_slot_labels_ids = slot_label_mask.detach().cpu().numpy()
 
         slot_label_map = {i: label for i, label in enumerate(self.slot_label_lst)}
-        out_label_list = [[] for _ in range(out_slot_labels_ids.shape[0])]
         slot_preds_list = [[] for _ in range(out_slot_labels_ids.shape[0])]
 
         for i in range(out_slot_labels_ids.shape[0]):
             for j in range(out_slot_labels_ids.shape[1]):
                 if out_slot_labels_ids[i, j] != self.pad_token_label_id:
-                    # out_label_list[i].append(slot_label_map[out_slot_labels_ids[i][j]])
                     slot_preds_list[i].append(slot_label_map[slot_preds[i][j]])
 
         # Make output.txt with texts, intent_list and slot_preds_list

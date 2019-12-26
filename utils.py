@@ -4,7 +4,6 @@ import logging
 
 import torch
 import numpy as np
-from sklearn.metrics import f1_score
 from transformers import BertTokenizer, BertConfig, DistilBertConfig, DistilBertTokenizer, RobertaConfig, RobertaTokenizer, \
     AlbertConfig, AlbertTokenizer
 
@@ -53,19 +52,17 @@ def set_seed(args):
 
 def compute_metrics(preds, labels):
     assert len(preds) == len(labels)
-    return acc_and_f1(preds, labels)
+    return get_acc(preds, labels)
 
 
 def simple_accuracy(preds, labels):
     return (preds == labels).mean()
 
 
-def acc_and_f1(preds, labels, average='macro'):
+def get_acc(preds, labels, average='macro'):
     acc = simple_accuracy(preds, labels)
-    f1 = f1_score(y_true=labels, y_pred=preds, average=average)
     return {
         "intent_acc": acc,
-        "intent_f1": f1,
     }
 
 
