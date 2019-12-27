@@ -166,18 +166,10 @@ class Trainer(object):
 
             # Slot prediction
             if slot_preds is None:
-                if self.args.use_crf:
-                    slot_preds = np.array(self.model.crf.decode(slot_logits))
-                else:
-                    slot_preds = slot_logits.detach().cpu().numpy()
-
+                slot_preds = slot_logits.detach().cpu().numpy()
                 out_slot_labels_ids = inputs["slot_labels_ids"].detach().cpu().numpy()
             else:
-                if self.args.use_crf:
-                    slot_preds = np.append(slot_preds, np.array(self.model.crf.decode(slot_logits)), axis=0)
-                else:
-                    slot_preds = np.append(slot_preds, slot_logits.detach().cpu().numpy(), axis=0)
-
+                slot_preds = np.append(slot_preds, slot_logits.detach().cpu().numpy(), axis=0)
                 out_slot_labels_ids = np.append(out_slot_labels_ids, inputs["slot_labels_ids"].detach().cpu().numpy(), axis=0)
 
         eval_loss = eval_loss / nb_eval_steps
@@ -190,8 +182,7 @@ class Trainer(object):
         results.update(intent_result)
 
         # Slot result
-        if not self.args.use_crf:
-            slot_preds = np.argmax(slot_preds, axis=2)
+        slot_preds = np.argmax(slot_preds, axis=2)
         slot_label_map = {i: label for i, label in enumerate(self.slot_label_lst)}
         out_label_list = [[] for _ in range(out_slot_labels_ids.shape[0])]
         preds_list = [[] for _ in range(out_slot_labels_ids.shape[0])]
@@ -338,9 +329,6 @@ class Trainer(object):
                 inputs['token_type_ids'] = batch[2]
             outputs = self.model(**inputs)
             _, (intent_logits, slot_logits) = outputs[:2]
-
-        print(intent_logits.size())
-        print(slot_logits.size())
 
         # Intent prediction
         intent_preds = intent_logits.detach().cpu().numpy()

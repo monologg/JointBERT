@@ -10,13 +10,13 @@
 
 - Predict `intent` and `slot` at the same time from **one BERT model** (=Joint model)
 - total_loss = intent_loss + coef \* slot_loss (Change coef with `--slot_loss_coef` option)
-- **If you want to use CRF layer, give `--use_crf` option**
+- Didn't use CRF Layer
 
 ## Dependencies
 
 - python>=3.5
-- torch==1.1.0
-- transformers==2.2.2
+- torch>=1.1.0
+- transformers>=2.2.2
 - seqeval>=0.0.12
 
 ## Dataset
@@ -36,7 +36,6 @@ $ python3 main.py --task {task_name} \
                   --model_type {model_type} \
                   --model_dir {model_dir_name} \
                   --do_train --do_eval \
-                  --use_crf
 
 # For ATIS
 $ python3 main.py --task atis \
@@ -68,31 +67,23 @@ $ python3 main.py --task snips \
 
 - Run 5 epochs each (No hyperparameter tuning)
 
-|           |                  | Intent acc (%) | Slot F1 (%) |
-| --------- | ---------------- | -------------- | ----------- |
-| **ATIS**  | BERT             | 97.87          | 95.46       |
-|           | BERT + CRF       |                |             |
-|           | DistilBERT       | 97.54          | 94.89       |
-|           | DistilBERT + CRF | 97.60          | 97.69       |
-|           | RoBERTa          | 97.64          | 94.94       |
-|           | RoBERTa + CRF    |                |             |
-|           | ALBERT           | 97.42          | 94.91       |
-|           | ALBERT + CRF     |                |             |
-| **Snips** | BERT             | 98.29          | 96.05       |
-|           | BERT + CRF       |                |             |
-|           | DistilBERT       | 98.42          | 94.10       |
-|           | DistilBERT + CRF |                |             |
-|           | RoBERTa          | 98.14          | 94.60       |
-|           | RoBERTa + CRF    |                |             |
-|           | ALBERT           | 98.14          | 95.95       |
-|           | ALBERT + CRF     |                |             |
+|           |            | Intent acc (%) | Slot F1 (%) |
+| --------- | ---------- | -------------- | ----------- |
+| **ATIS**  | BERT       | 97.87          | 95.46       |
+|           | DistilBERT | 97.54          | 94.89       |
+|           | RoBERTa    | 97.64          | 94.94       |
+|           | ALBERT     |                |             |
+| **Snips** | BERT       | 98.29          | 96.05       |
+|           | DistilBERT | 98.42          | 94.10       |
+|           | RoBERTa    | 98.14          | 94.60       |
+|           | ALBERT     |                |             |
 
 ## Updates
 
 - 2019/12/03: Add DistilBert and RoBERTa result
 - 2019/12/14: Add Albert(large v1) result
 - 2019/12/22: Available to predict sentences
-- 2019/12/26: Add CRF option
+- 2019/12/26: Add Albert(xxlarge v1) result
 
 ## References
 

@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 from transformers import BertPreTrainedModel, BertModel, DistilBertModel, RobertaModel, AlbertModel, DistilBertPreTrainedModel
 
-from torchcrf import CRF
 
 PRETRAINED_MODEL_MAP = {
     'bert': BertModel,
@@ -45,9 +44,6 @@ class JointBERT(BertPreTrainedModel):
         self.intent_classifier = IntentClassifier(bert_config.hidden_size, num_intent_labels, args.dropout_rate)
         self.slot_classifier = SlotClassifier(bert_config.hidden_size, num_slot_labels, args.dropout_rate)
 
-        if args.use_crf:
-            self.crf = CRF(num_tags=num_slot_labels, batch_first=True)
-
     def forward(self, input_ids, attention_mask, token_type_ids, intent_label_ids, slot_labels_ids):
         outputs = self.bert(input_ids, attention_mask=attention_mask,
                             token_type_ids=token_type_ids)  # sequence_output, pooled_output, (hidden_states), (attentions)
@@ -70,19 +66,15 @@ class JointBERT(BertPreTrainedModel):
 
         # 2. Slot Softmax
         if slot_labels_ids is not None:
-            if self.args.use_crf:
-                slot_loss = self.crf(slot_logits, slot_labels_ids, mask=attention_mask.byte(), reduction='mean')
-                slot_loss = -1 * slot_loss  # negative log-likelihood
+            slot_loss_fct = nn.CrossEntropyLoss(ignore_index=self.args.ignore_index)
+            # Only keep active parts of the loss
+            if attention_mask is not None:
+                active_loss = attention_mask.view(-1) == 1
+                active_logits = slot_logits.view(-1, self.num_slot_labels)[active_loss]
+                active_labels = slot_labels_ids.view(-1)[active_loss]
+                slot_loss = slot_loss_fct(active_logits, active_labels)
             else:
-                slot_loss_fct = nn.CrossEntropyLoss(ignore_index=self.args.ignore_index)
-                # Only keep active parts of the loss
-                if attention_mask is not None:
-                    active_loss = attention_mask.view(-1) == 1
-                    active_logits = slot_logits.view(-1, self.num_slot_labels)[active_loss]
-                    active_labels = slot_labels_ids.view(-1)[active_loss]
-                    slot_loss = slot_loss_fct(active_logits, active_labels)
-                else:
-                    slot_loss = slot_loss_fct(slot_logits.view(-1, self.num_slot_labels), slot_labels_ids.view(-1))
+                slot_loss = slot_loss_fct(slot_logits.view(-1, self.num_slot_labels), slot_labels_ids.view(-1))
             total_loss += self.args.slot_loss_coef * slot_loss
 
         outputs = ((intent_logits, slot_logits),) + outputs[1:]  # add hidden states and attention if they are here
@@ -104,8 +96,6 @@ class JointDistilBERT(DistilBertPreTrainedModel):
         self.intent_classifier = IntentClassifier(distilbert_config.hidden_size, num_intent_labels, args.dropout_rate)
         self.slot_classifier = SlotClassifier(distilbert_config.hidden_size, num_slot_labels, args.dropout_rate)
 
-        if args.use_crf:
-            self.crf = CRF(num_tags=num_slot_labels, batch_first=True)
 
     def forward(self, input_ids, attention_mask, intent_label_ids, slot_labels_ids):
         outputs = self.distilbert(input_ids, attention_mask=attention_mask)  # last-layer hidden-state, (hidden_states), (attentions)
@@ -128,19 +118,15 @@ class JointDistilBERT(DistilBertPreTrainedModel):
 
         # 2. Slot Softmax
         if slot_labels_ids is not None:
-            if self.args.use_crf:
-                slot_loss = self.crf(slot_logits, slot_labels_ids, mask=attention_mask.byte(), reduction='mean')
-                slot_loss = -1 * slot_loss  # negative log-likelihood
+            slot_loss_fct = nn.CrossEntropyLoss(ignore_index=self.args.ignore_index)
+            # Only keep active parts of the loss
+            if attention_mask is not None:
+                active_loss = attention_mask.view(-1) == 1
+                active_logits = slot_logits.view(-1, self.num_slot_labels)[active_loss]
+                active_labels = slot_labels_ids.view(-1)[active_loss]
+                slot_loss = slot_loss_fct(active_logits, active_labels)
             else:
-                slot_loss_fct = nn.CrossEntropyLoss(ignore_index=self.args.ignore_index)
-                # Only keep active parts of the loss
-                if attention_mask is not None:
-                    active_loss = attention_mask.view(-1) == 1
-                    active_logits = slot_logits.view(-1, self.num_slot_labels)[active_loss]
-                    active_labels = slot_labels_ids.view(-1)[active_loss]
-                    slot_loss = slot_loss_fct(active_logits, active_labels)
-                else:
-                    slot_loss = slot_loss_fct(slot_logits.view(-1, self.num_slot_labels), slot_labels_ids.view(-1))
+                slot_loss = slot_loss_fct(slot_logits.view(-1, self.num_slot_labels), slot_labels_ids.view(-1))
             total_loss += self.args.slot_loss_coef * slot_loss
 
         outputs = ((intent_logits, slot_logits),) + outputs[1:]  # add hidden states and attention if they are here

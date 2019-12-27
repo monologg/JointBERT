@@ -20,7 +20,7 @@ MODEL_PATH_MAP = {
     'bert': 'bert-base-uncased',
     'distilbert': 'distilbert-base-uncased',
     'roberta': 'roberta-base',
-    'albert': 'albert-large-v1'
+    'albert': 'albert-xxlarge-v1'
 }
 
 
