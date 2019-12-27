@@ -10,7 +10,7 @@
 
 - Predict `intent` and `slot` at the same time from **one BERT model** (=Joint model)
 - total_loss = intent_loss + coef \* slot_loss (Change coef with `--slot_loss_coef` option)
-- Didn't use CRF Layer
+- No CRF Layer
 
 ## Dependencies
 
@@ -72,20 +72,19 @@ $ python3 main.py --task snips \
 | **ATIS**  | BERT       | 97.87          | 95.46       |
 |           | DistilBERT | 97.54          | 94.89       |
 |           | RoBERTa    | 97.64          | 94.94       |
-|           | ALBERT     |                |             |
+|           | ALBERT     | 98.20          | 95.59       |
 | **Snips** | BERT       | 98.29          | 96.05       |
 |           | DistilBERT | 98.42          | 94.10       |
 |           | RoBERTa    | 98.14          | 94.60       |
-|           | ALBERT     |                |             |
+|           | ALBERT     | 98.28          | 95.50       |
 
 ## Updates
 
 - 2019/12/03: Add DistilBert and RoBERTa result
-- 2019/12/14: Add Albert(large v1) result
+- 2019/12/14: Add Albert (large v1) result
 - 2019/12/22: Available to predict sentences
-- 2019/12/26: Add Albert(xxlarge v1) result
+- 2019/12/26: Add Albert (xxlarge v1) result
 
 ## References
 
 - [Huggingface Transformers](https://github.com/huggingface/transformers)
-- [Keras Implementation](https://github.com/lytum/joint-intent-classification-and-slot-filling-based-on-BERT)
