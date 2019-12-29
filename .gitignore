@@ -110,5 +110,4 @@ model/
 snips_model/
 atis_model/
 
-vocab_process.py
 cached*
