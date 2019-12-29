@@ -15,9 +15,9 @@
 ## Dependencies
 
 - python>=3.5
-- torch>=1.1.0
-- transformers>=2.2.2
-- seqeval>=0.0.12
+- torch==1.1.0
+- transformers==2.2.2
+- seqeval==0.0.12
 - pytorch-crf==0.7.2
 
 ## Dataset
@@ -29,6 +29,7 @@
 
 - The number of labels are based on the _train_ dataset.
 - Add `UNK` for labels (For intent and slot labels which are only shown in _dev_ and _test_ dataset)
+- Add `PAD` for slot label
 
 ## Training & Evaluation
 
@@ -68,18 +69,28 @@ $ python3 main.py --task snips \
 
 ## Results
 
-- Run 5 epochs each (No hyperparameter tuning)
+- Run 5 ~ 10 epochs (Record the best result)
+- RoBERTa takes more epochs to get the best result compare to other models.
+- ALBERT xxlarge sometimes can't converge well for slot prediction.
 
-|           |            | Intent acc (%) | Slot F1 (%) |
-| --------- | ---------- | -------------- | ----------- |
-| **ATIS**  | BERT       | 97.87          | 95.46       |
-|           | DistilBERT | 97.54          | 94.89       |
-|           | RoBERTa    | 97.64          | 94.94       |
-|           | ALBERT     | 98.20          | 95.59       |
-| **Snips** | BERT       | 98.29          | 96.05       |
-|           | DistilBERT | 98.42          | 94.10       |
-|           | RoBERTa    | 98.14          | 94.60       |
-|           | ALBERT     | 98.28          | 95.50       |
+|           |                  | Intent acc (%) | Slot F1 (%) | Sentence acc (%) |
+| --------- | ---------------- | -------------- | ----------- | ---------------- |
+| **ATIS**  | BERT             | 97.87          | 95.46       |                  |
+|           | BERT + CRF       | 97.76          | 96.04       |                  |
+|           | DistilBERT       | 97.54          | 94.89       |                  |
+|           | DistilBERT + CRF | 97.42          | 95.89       |                  |
+|           | RoBERTa          | 97.64          | 95.72       |                  |
+|           | RoBERTa + CRF    | 97.64          | 95.63       |                  |
+|           | ALBERT           | 98.20          | 95.59       |                  |
+|           | ALBERT + CRF     |                |             |                  |
+| **Snips** | BERT             | 98.29          | 96.05       |                  |
+|           | BERT + CRF       |                |             |                  |
+|           | DistilBERT       | 98.42          | 94.10       |                  |
+|           | DistilBERT + CRF |                |             |                  |
+|           | RoBERTa          | 98.14          | 94.60       |                  |
+|           | RoBERTa + CRF    |                |             |                  |
+|           | ALBERT           | 98.57          | 97.48       |                  |
+|           | ALBERT + CRF     |                |             |                  |
 
 ## Updates
 
@@ -88,6 +99,7 @@ $ python3 main.py --task snips \
 - 2019/12/22: Available to predict sentences
 - 2019/12/26: Add Albert (xxlarge v1) result
 - 2019/12/29: Add CRF option
+- 2019/12/30: Available to check `sentence-level semantic frame accuracy`
 
 ## References
 

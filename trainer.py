@@ -3,12 +3,11 @@ import logging
 from tqdm import tqdm, trange
 
 import numpy as np
-from seqeval.metrics import precision_score, recall_score, f1_score
 import torch
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from transformers import BertConfig, AdamW, get_linear_schedule_with_warmup
 
-from utils import set_seed, compute_metrics, get_intent_labels, get_slot_labels, MODEL_CLASSES
+from utils import MODEL_CLASSES, set_seed, compute_metrics, get_intent_labels, get_slot_labels
 
 logger = logging.getLogger(__name__)
 
@@ -183,30 +182,25 @@ class Trainer(object):
         results = {
             "loss": eval_loss
         }
+
         # Intent result
         intent_preds = np.argmax(intent_preds, axis=1)
-        intent_result = compute_metrics(intent_preds, out_intent_label_ids)
-        results.update(intent_result)
 
         # Slot result
         if not self.args.use_crf:
             slot_preds = np.argmax(slot_preds, axis=2)
         slot_label_map = {i: label for i, label in enumerate(self.slot_label_lst)}
-        out_label_list = [[] for _ in range(out_slot_labels_ids.shape[0])]
-        preds_list = [[] for _ in range(out_slot_labels_ids.shape[0])]
+        out_slot_label_list = [[] for _ in range(out_slot_labels_ids.shape[0])]
+        slot_preds_list = [[] for _ in range(out_slot_labels_ids.shape[0])]
 
         for i in range(out_slot_labels_ids.shape[0]):
             for j in range(out_slot_labels_ids.shape[1]):
                 if out_slot_labels_ids[i, j] != self.pad_token_label_id:
-                    out_label_list[i].append(slot_label_map[out_slot_labels_ids[i][j]])
-                    preds_list[i].append(slot_label_map[slot_preds[i][j]])
+                    out_slot_label_list[i].append(slot_label_map[out_slot_labels_ids[i][j]])
+                    slot_preds_list[i].append(slot_label_map[slot_preds[i][j]])
 
-        slot_result = {
-            "slot_precision": precision_score(out_label_list, preds_list),
-            "slot_recall": recall_score(out_label_list, preds_list),
-            "slot_f1": f1_score(out_label_list, preds_list)
-        }
-        results.update(slot_result)
+        total_result = compute_metrics(intent_preds, out_intent_label_ids, slot_preds_list, out_slot_label_list)
+        results.update(total_result)
 
         logger.info("***** Eval results *****")
         for key in sorted(results.keys()):
