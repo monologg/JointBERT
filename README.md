@@ -75,21 +75,21 @@ $ python3 main.py --task snips \
 
 |           |                  | Intent acc (%) | Slot F1 (%) | Sentence acc (%) |
 | --------- | ---------------- | -------------- | ----------- | ---------------- |
-| **ATIS**  | BERT             | 97.87          | 95.46       |                  |
-|           | BERT + CRF       | 97.76          | 96.04       |                  |
-|           | DistilBERT       | 97.54          | 94.89       |                  |
-|           | DistilBERT + CRF | 97.42          | 95.89       |                  |
-|           | RoBERTa          | 97.64          | 95.72       |                  |
-|           | RoBERTa + CRF    | 97.64          | 95.63       |                  |
-|           | ALBERT           | 98.20          | 95.59       |                  |
-|           | ALBERT + CRF     |                |             |                  |
-| **Snips** | BERT             | 98.29          | 96.05       |                  |
+| **ATIS**  | BERT             |                |             |                  |
 |           | BERT + CRF       |                |             |                  |
-|           | DistilBERT       | 98.42          | 94.10       |                  |
+|           | DistilBERT       |                |             |                  |
 |           | DistilBERT + CRF |                |             |                  |
-|           | RoBERTa          | 98.14          | 94.60       |                  |
+|           | RoBERTa          |                |             |                  |
 |           | RoBERTa + CRF    |                |             |                  |
-|           | ALBERT           | 98.57          | 97.48       |                  |
+|           | ALBERT           |                |             |                  |
+|           | ALBERT + CRF     |                |             |                  |
+| **Snips** | BERT             |                |             |                  |
+|           | BERT + CRF       |                |             |                  |
+|           | DistilBERT       |                |             |                  |
+|           | DistilBERT + CRF |                |             |                  |
+|           | RoBERTa          |                |             |                  |
+|           | RoBERTa + CRF    |                |             |                  |
+|           | ALBERT           |                |             |                  |
 |           | ALBERT + CRF     |                |             |                  |
 
 ## Updates
