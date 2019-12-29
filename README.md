@@ -10,14 +10,15 @@
 
 - Predict `intent` and `slot` at the same time from **one BERT model** (=Joint model)
 - total_loss = intent_loss + coef \* slot_loss (Change coef with `--slot_loss_coef` option)
-- No CRF Layer
+- **If you want to use CRF layer, give `--use_crf` option**
 
 ## Dependencies
 
 - python>=3.5
-- torch>=1.1.0
-- transformers>=2.2.2
-- seqeval>=0.0.12
+- torch==1.1.0
+- transformers==2.2.2
+- seqeval==0.0.12
+- pytorch-crf==0.7.2
 
 ## Dataset
 
@@ -28,6 +29,7 @@
 
 - The number of labels are based on the _train_ dataset.
 - Add `UNK` for labels (For intent and slot labels which are only shown in _dev_ and _test_ dataset)
+- Add `PAD` for slot label
 
 ## Training & Evaluation
 
@@ -36,6 +38,7 @@ $ python3 main.py --task {task_name} \
                   --model_type {model_type} \
                   --model_dir {model_dir_name} \
                   --do_train --do_eval \
+                  --use_crf
 
 # For ATIS
 $ python3 main.py --task atis \
@@ -53,6 +56,7 @@ $ python3 main.py --task snips \
 
 - There should be a trained model before running prediction.
 - You should write sentences in `preds.txt` in `preds` directory.
+- **If your model is trained using CRF, you must give `--use_crf` option when running prediction.**
 
 ```bash
 $ python3 main.py --task snips \
@@ -65,18 +69,28 @@ $ python3 main.py --task snips \
 
 ## Results
 
-- Run 5 epochs each (No hyperparameter tuning)
+- Run 5 ~ 10 epochs (Record the best result)
+- RoBERTa takes more epochs to get the best result compare to other models.
+- ALBERT xxlarge sometimes can't converge well for slot prediction.
 
-|           |            | Intent acc (%) | Slot F1 (%) |
-| --------- | ---------- | -------------- | ----------- |
-| **ATIS**  | BERT       | 97.87          | 95.46       |
-|           | DistilBERT | 97.54          | 94.89       |
-|           | RoBERTa    | 97.64          | 94.94       |
-|           | ALBERT     | 98.20          | 95.59       |
-| **Snips** | BERT       | 98.29          | 96.05       |
-|           | DistilBERT | 98.42          | 94.10       |
-|           | RoBERTa    | 98.14          | 94.60       |
-|           | ALBERT     | 98.28          | 95.50       |
+|           |                  | Intent acc (%) | Slot F1 (%) | Sentence acc (%) |
+| --------- | ---------------- | -------------- | ----------- | ---------------- |
+| **ATIS**  | BERT             |                |             |                  |
+|           | BERT + CRF       |                |             |                  |
+|           | DistilBERT       |                |             |                  |
+|           | DistilBERT + CRF |                |             |                  |
+|           | RoBERTa          |                |             |                  |
+|           | RoBERTa + CRF    |                |             |                  |
+|           | ALBERT           |                |             |                  |
+|           | ALBERT + CRF     |                |             |                  |
+| **Snips** | BERT             |                |             |                  |
+|           | BERT + CRF       |                |             |                  |
+|           | DistilBERT       |                |             |                  |
+|           | DistilBERT + CRF |                |             |                  |
+|           | RoBERTa          |                |             |                  |
+|           | RoBERTa + CRF    |                |             |                  |
+|           | ALBERT           |                |             |                  |
+|           | ALBERT + CRF     |                |             |                  |
 
 ## Updates
 
@@ -84,7 +98,10 @@ $ python3 main.py --task snips \
 - 2019/12/14: Add Albert (large v1) result
 - 2019/12/22: Available to predict sentences
 - 2019/12/26: Add Albert (xxlarge v1) result
+- 2019/12/29: Add CRF option
+- 2019/12/30: Available to check `sentence-level semantic frame accuracy`
 
 ## References
 
 - [Huggingface Transformers](https://github.com/huggingface/transformers)
+- [pytorch-crf](https://github.com/kmkurn/pytorch-crf)

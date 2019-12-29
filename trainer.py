@@ -3,12 +3,11 @@ import logging
 from tqdm import tqdm, trange
 
 import numpy as np
-from seqeval.metrics import precision_score, recall_score, f1_score
 import torch
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from transformers import BertConfig, AdamW, get_linear_schedule_with_warmup
 
-from utils import set_seed, compute_metrics, get_intent_labels, get_slot_labels, MODEL_CLASSES
+from utils import MODEL_CLASSES, set_seed, compute_metrics, get_intent_labels, get_slot_labels
 
 logger = logging.getLogger(__name__)
 
@@ -22,14 +21,12 @@ class Trainer(object):
 
         self.intent_label_lst = get_intent_labels(args)
         self.slot_label_lst = get_slot_labels(args)
-        self.num_intent_labels = len(self.intent_label_lst)
-        self.num_slot_labels = len(self.slot_label_lst)
         # Use cross entropy ignore index as padding label id so that only real label ids contribute to the loss later
         self.pad_token_label_id = args.ignore_index
 
         self.config_class, self.model_class, _ = MODEL_CLASSES[args.model_type]
         self.bert_config = self.config_class.from_pretrained(args.model_name_or_path, finetuning_task=args.task)
-        self.model = self.model_class(self.bert_config, args, self.num_intent_labels, self.num_slot_labels)
+        self.model = self.model_class(self.bert_config, args, self.intent_label_lst, self.slot_label_lst)
 
         # GPU or CPU
         self.device = "cuda" if torch.cuda.is_available() and not args.no_cuda else "cpu"
@@ -166,39 +163,44 @@ class Trainer(object):
 
             # Slot prediction
             if slot_preds is None:
-                slot_preds = slot_logits.detach().cpu().numpy()
+                if self.args.use_crf:
+                    # decode() in `torchcrf` returns list with best index directly
+                    slot_preds = np.array(self.model.crf.decode(slot_logits))
+                else:
+                    slot_preds = slot_logits.detach().cpu().numpy()
+
                 out_slot_labels_ids = inputs["slot_labels_ids"].detach().cpu().numpy()
             else:
-                slot_preds = np.append(slot_preds, slot_logits.detach().cpu().numpy(), axis=0)
+                if self.args.use_crf:
+                    slot_preds = np.append(slot_preds, np.array(self.model.crf.decode(slot_logits)), axis=0)
+                else:
+                    slot_preds = np.append(slot_preds, slot_logits.detach().cpu().numpy(), axis=0)
+
                 out_slot_labels_ids = np.append(out_slot_labels_ids, inputs["slot_labels_ids"].detach().cpu().numpy(), axis=0)
 
         eval_loss = eval_loss / nb_eval_steps
         results = {
             "loss": eval_loss
         }
+
         # Intent result
         intent_preds = np.argmax(intent_preds, axis=1)
-        intent_result = compute_metrics(intent_preds, out_intent_label_ids)
-        results.update(intent_result)
 
         # Slot result
-        slot_preds = np.argmax(slot_preds, axis=2)
+        if not self.args.use_crf:
+            slot_preds = np.argmax(slot_preds, axis=2)
         slot_label_map = {i: label for i, label in enumerate(self.slot_label_lst)}
-        out_label_list = [[] for _ in range(out_slot_labels_ids.shape[0])]
-        preds_list = [[] for _ in range(out_slot_labels_ids.shape[0])]
+        out_slot_label_list = [[] for _ in range(out_slot_labels_ids.shape[0])]
+        slot_preds_list = [[] for _ in range(out_slot_labels_ids.shape[0])]
 
         for i in range(out_slot_labels_ids.shape[0]):
             for j in range(out_slot_labels_ids.shape[1]):
                 if out_slot_labels_ids[i, j] != self.pad_token_label_id:
-                    out_label_list[i].append(slot_label_map[out_slot_labels_ids[i][j]])
-                    preds_list[i].append(slot_label_map[slot_preds[i][j]])
+                    out_slot_label_list[i].append(slot_label_map[out_slot_labels_ids[i][j]])
+                    slot_preds_list[i].append(slot_label_map[slot_preds[i][j]])
 
-        slot_result = {
-            "slot_precision": precision_score(out_label_list, preds_list),
-            "slot_recall": recall_score(out_label_list, preds_list),
-            "slot_f1": f1_score(out_label_list, preds_list)
-        }
-        results.update(slot_result)
+        total_result = compute_metrics(intent_preds, out_intent_label_ids, slot_preds_list, out_slot_label_list)
+        results.update(total_result)
 
         logger.info("***** Eval results *****")
         for key in sorted(results.keys()):
@@ -226,8 +228,8 @@ class Trainer(object):
             self.bert_config = self.config_class.from_pretrained(self.args.model_dir)
             logger.info("***** Config loaded *****")
             self.model = self.model_class.from_pretrained(self.args.model_dir, config=self.bert_config,
-                                                          args=self.args, num_intent_labels=self.num_intent_labels,
-                                                          num_slot_labels=self.num_slot_labels)
+                                                          args=self.args, intent_label_lst=self.intent_label_lst,
+                                                          slot_label_lst=self.slot_label_lst)
             self.model.to(self.device)
             logger.info("***** Model Loaded *****")
         except:
@@ -328,7 +330,7 @@ class Trainer(object):
             if self.args.model_type != 'distilbert':
                 inputs['token_type_ids'] = batch[2]
             outputs = self.model(**inputs)
-            _, (intent_logits, slot_logits) = outputs[:2]
+            _, (intent_logits, slot_logits) = outputs[:2]  # loss doesn't needed
 
         # Intent prediction
         intent_preds = intent_logits.detach().cpu().numpy()
@@ -338,8 +340,12 @@ class Trainer(object):
             intent_list.append(self.intent_label_lst[intent_idx])
 
         # Slot prediction
-        slot_preds = slot_logits.detach().cpu().numpy()
-        slot_preds = np.argmax(slot_preds, axis=2)
+        if self.args.use_crf:
+            slot_preds = np.array(self.model.crf.decode(slot_logits))
+        else:
+            slot_preds = slot_logits.detach().cpu().numpy()
+            slot_preds = np.argmax(slot_preds, axis=2)
+
         out_slot_labels_ids = slot_label_mask.detach().cpu().numpy()
 
         slot_label_map = {i: label for i, label in enumerate(self.slot_label_lst)}
