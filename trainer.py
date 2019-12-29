@@ -165,6 +165,7 @@ class Trainer(object):
             # Slot prediction
             if slot_preds is None:
                 if self.args.use_crf:
+                    # decode() in `torchcrf` returns list with best index directly
                     slot_preds = np.array(self.model.crf.decode(slot_logits))
                 else:
                     slot_preds = slot_logits.detach().cpu().numpy()
@@ -335,7 +336,7 @@ class Trainer(object):
             if self.args.model_type != 'distilbert':
                 inputs['token_type_ids'] = batch[2]
             outputs = self.model(**inputs)
-            _, (intent_logits, slot_logits) = outputs[:2]
+            _, (intent_logits, slot_logits) = outputs[:2]  # loss doesn't needed
 
         # Intent prediction
         intent_preds = intent_logits.detach().cpu().numpy()
@@ -345,8 +346,12 @@ class Trainer(object):
             intent_list.append(self.intent_label_lst[intent_idx])
 
         # Slot prediction
-        slot_preds = slot_logits.detach().cpu().numpy()
-        slot_preds = np.argmax(slot_preds, axis=2)
+        if self.args.use_crf:
+            slot_preds = np.array(self.model.crf.decode(slot_logits))
+        else:
+            slot_preds = slot_logits.detach().cpu().numpy()
+            slot_preds = np.argmax(slot_preds, axis=2)
+
         out_slot_labels_ids = slot_label_mask.detach().cpu().numpy()
 
         slot_label_map = {i: label for i, label in enumerate(self.slot_label_lst)}

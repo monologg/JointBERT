@@ -74,6 +74,7 @@ class JointBERT(BertPreTrainedModel):
         if slot_labels_ids is not None:
             if self.args.use_crf:
                 # Make new slot_labels_ids, changing ignore_index(-100) to PAD index in slot label
+                # In torchcrf, if index is lower than 0, it makes error when indexing the list
                 padded_slot_labels_ids = slot_labels_ids.detach().clone()
                 padded_slot_labels_ids[padded_slot_labels_ids == self.args.ignore_index] = self.slot_pad_token_idx
 
@@ -138,6 +139,7 @@ class JointDistilBERT(DistilBertPreTrainedModel):
         if slot_labels_ids is not None:
             if self.args.use_crf:
                 # Make new slot_labels_ids, changing ignore_index(-100) to PAD index in slot label
+                # In torchcrf, if index is lower than 0, it makes error when indexing the list
                 padded_slot_labels_ids = slot_labels_ids.detach().clone()
                 padded_slot_labels_ids[padded_slot_labels_ids == self.args.ignore_index] = self.slot_pad_token_idx
 
