@@ -10,7 +10,7 @@
 
 - Predict `intent` and `slot` at the same time from **one BERT model** (=Joint model)
 - total_loss = intent_loss + coef \* slot_loss (Change coef with `--slot_loss_coef` option)
-- No CRF Layer
+- **If you want to use CRF layer, give `--use_crf` option**
 
 ## Dependencies
 
@@ -18,6 +18,7 @@
 - torch>=1.1.0
 - transformers>=2.2.2
 - seqeval>=0.0.12
+- pytorch-crf==0.7.2
 
 ## Dataset
 
@@ -36,6 +37,7 @@ $ python3 main.py --task {task_name} \
                   --model_type {model_type} \
                   --model_dir {model_dir_name} \
                   --do_train --do_eval \
+                  --use_crf
 
 # For ATIS
 $ python3 main.py --task atis \
@@ -53,6 +55,7 @@ $ python3 main.py --task snips \
 
 - There should be a trained model before running prediction.
 - You should write sentences in `preds.txt` in `preds` directory.
+- **If your model is trained using CRF, you must give `--use_crf` option when running prediction.**
 
 ```bash
 $ python3 main.py --task snips \
@@ -84,7 +87,9 @@ $ python3 main.py --task snips \
 - 2019/12/14: Add Albert (large v1) result
 - 2019/12/22: Available to predict sentences
 - 2019/12/26: Add Albert (xxlarge v1) result
+- 2019/12/29: Add CRF option
 
 ## References
 
 - [Huggingface Transformers](https://github.com/huggingface/transformers)
+- [pytorch-crf](https://github.com/kmkurn/pytorch-crf)

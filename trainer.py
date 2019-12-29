@@ -22,14 +22,12 @@ class Trainer(object):
 
         self.intent_label_lst = get_intent_labels(args)
         self.slot_label_lst = get_slot_labels(args)
-        self.num_intent_labels = len(self.intent_label_lst)
-        self.num_slot_labels = len(self.slot_label_lst)
         # Use cross entropy ignore index as padding label id so that only real label ids contribute to the loss later
         self.pad_token_label_id = args.ignore_index
 
         self.config_class, self.model_class, _ = MODEL_CLASSES[args.model_type]
         self.bert_config = self.config_class.from_pretrained(args.model_name_or_path, finetuning_task=args.task)
-        self.model = self.model_class(self.bert_config, args, self.num_intent_labels, self.num_slot_labels)
+        self.model = self.model_class(self.bert_config, args, self.intent_label_lst, self.slot_label_lst)
 
         # GPU or CPU
         self.device = "cuda" if torch.cuda.is_available() and not args.no_cuda else "cpu"
@@ -166,10 +164,18 @@ class Trainer(object):
 
             # Slot prediction
             if slot_preds is None:
-                slot_preds = slot_logits.detach().cpu().numpy()
+                if self.args.use_crf:
+                    slot_preds = np.array(self.model.crf.decode(slot_logits))
+                else:
+                    slot_preds = slot_logits.detach().cpu().numpy()
+
                 out_slot_labels_ids = inputs["slot_labels_ids"].detach().cpu().numpy()
             else:
-                slot_preds = np.append(slot_preds, slot_logits.detach().cpu().numpy(), axis=0)
+                if self.args.use_crf:
+                    slot_preds = np.append(slot_preds, np.array(self.model.crf.decode(slot_logits)), axis=0)
+                else:
+                    slot_preds = np.append(slot_preds, slot_logits.detach().cpu().numpy(), axis=0)
+
                 out_slot_labels_ids = np.append(out_slot_labels_ids, inputs["slot_labels_ids"].detach().cpu().numpy(), axis=0)
 
         eval_loss = eval_loss / nb_eval_steps
@@ -182,7 +188,8 @@ class Trainer(object):
         results.update(intent_result)
 
         # Slot result
-        slot_preds = np.argmax(slot_preds, axis=2)
+        if not self.args.use_crf:
+            slot_preds = np.argmax(slot_preds, axis=2)
         slot_label_map = {i: label for i, label in enumerate(self.slot_label_lst)}
         out_label_list = [[] for _ in range(out_slot_labels_ids.shape[0])]
         preds_list = [[] for _ in range(out_slot_labels_ids.shape[0])]
@@ -226,8 +233,8 @@ class Trainer(object):
             self.bert_config = self.config_class.from_pretrained(self.args.model_dir)
             logger.info("***** Config loaded *****")
             self.model = self.model_class.from_pretrained(self.args.model_dir, config=self.bert_config,
-                                                          args=self.args, num_intent_labels=self.num_intent_labels,
-                                                          num_slot_labels=self.num_slot_labels)
+                                                          args=self.args, intent_label_lst=self.intent_label_lst,
+                                                          slot_label_lst=self.slot_label_lst)
             self.model.to(self.device)
             logger.info("***** Model Loaded *****")
         except:

@@ -79,6 +79,10 @@ if __name__ == '__main__':
     parser.add_argument("--pred_output_file", default="outputs.txt", type=str, help="The output file of prediction")
     parser.add_argument("--do_pred", action="store_true", help="Whether to predict the sentences")
 
+    # CRF option
+    parser.add_argument("--use_crf", action="store_true", help="Whether to use CRF")
+    parser.add_argument("--slot_pad_label", default="PAD", type=str, help="Pad token for slot label pad (to be ignore when calculate loss)")
+
     args = parser.parse_args()
 
     args.model_name_or_path = MODEL_PATH_MAP[args.model_type]
