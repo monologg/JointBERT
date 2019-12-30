@@ -77,7 +77,7 @@ def get_slot_metrics(preds, labels):
 def get_intent_acc(preds, labels):
     acc = (preds == labels).mean()
     return {
-        "intent_acc": acc,
+        "intent_acc": acc
     }
 
 
