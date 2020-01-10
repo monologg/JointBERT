@@ -69,7 +69,7 @@ $ python3 main.py --task snips \
 
 ## Results
 
-- Run 5 ~ 10 epochs (Record the best result)
+- Run 5 ~ 10 epochs (Record the best result) (No additional hyperparameter tuning)
 - RoBERTa takes more epochs to get the best result compare to other models.
 - ALBERT xxlarge sometimes can't converge well for slot prediction.
 
