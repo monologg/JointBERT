@@ -1,13 +1,12 @@
 import torch
 import torch.nn as nn
-from transformers import BertPreTrainedModel, BertModel, DistilBertModel, RobertaModel, AlbertModel, DistilBertPreTrainedModel
+from transformers import BertPreTrainedModel, BertModel, DistilBertModel, AlbertModel, DistilBertPreTrainedModel
 from torchcrf import CRF
 
 
 PRETRAINED_MODEL_MAP = {
     'bert': BertModel,
     'distilbert': DistilBertModel,
-    'roberta': RobertaModel,
     'albert': AlbertModel
 }
 

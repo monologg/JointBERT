@@ -5,22 +5,19 @@ import logging
 import torch
 import numpy as np
 from seqeval.metrics import precision_score, recall_score, f1_score
-from transformers import BertTokenizer, BertConfig, DistilBertConfig, DistilBertTokenizer, RobertaConfig, RobertaTokenizer, \
-    AlbertConfig, AlbertTokenizer
+from transformers import BertTokenizer, BertConfig, DistilBertConfig, DistilBertTokenizer, AlbertConfig, AlbertTokenizer
 
 from model import JointBERT, JointDistilBERT
 
 MODEL_CLASSES = {
     'bert': (BertConfig, JointBERT, BertTokenizer),
     'distilbert': (DistilBertConfig, JointDistilBERT, DistilBertTokenizer),
-    'roberta': (RobertaConfig, JointBERT, RobertaTokenizer),
     'albert': (AlbertConfig, JointBERT, AlbertTokenizer)
 }
 
 MODEL_PATH_MAP = {
     'bert': 'bert-base-uncased',
     'distilbert': 'distilbert-base-uncased',
-    'roberta': 'roberta-base',
     'albert': 'albert-xxlarge-v1'
 }
 
