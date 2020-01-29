@@ -2,7 +2,7 @@ import argparse
 
 from trainer import Trainer
 from utils import init_logger, load_tokenizer, read_prediction_text, MODEL_CLASSES, MODEL_PATH_MAP
-from data_loader import load_examples
+from data_loader import load_and_cache_examples
 
 
 def main(args):
@@ -14,11 +14,11 @@ def main(args):
     test_dataset = None
 
     if args.do_train:
-        train_dataset = load_examples(args, tokenizer, mode="train")
-        dev_dataset = load_examples(args, tokenizer, mode="dev")
+        train_dataset = load_and_cache_examples(args, tokenizer, mode="train")
+        dev_dataset = load_and_cache_examples(args, tokenizer, mode="dev")
 
     if args.do_eval:
-        test_dataset = load_examples(args, tokenizer, mode="test")
+        test_dataset = load_and_cache_examples(args, tokenizer, mode="test")
 
     trainer = Trainer(args, train_dataset, dev_dataset, test_dataset)
 

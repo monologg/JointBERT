@@ -209,24 +209,41 @@ def convert_examples_to_features(examples, max_seq_len, tokenizer,
     return features
 
 
-def load_examples(args, tokenizer, mode):
+def load_and_cache_examples(args, tokenizer, mode):
     processor = processors[args.task](args)
 
-    # Load data features from dataset file
-    logger.info("Creating features from dataset file at %s", args.data_dir)
-    if mode == "train":
-        examples = processor.get_examples("train")
-    elif mode == "dev":
-        examples = processor.get_examples("dev")
-    elif mode == "test":
-        examples = processor.get_examples("test")
-    else:
-        raise Exception("For mode, Only train, dev, test is available")
+    # Load data features from cache or dataset file
+    cached_features_file = os.path.join(
+        args.data_dir,
+        'cached_{}_{}_{}_{}'.format(
+            mode,
+            args.task,
+            list(filter(None, args.model_name_or_path.split("/"))).pop(),
+            args.max_seq_len
+        )
+    )
 
-    # Use cross entropy ignore index as padding label id so that only real label ids contribute to the loss later
-    pad_token_label_id = args.ignore_index
-    features = convert_examples_to_features(examples, args.max_seq_len, tokenizer,
-                                            pad_token_label_id=pad_token_label_id)
+    if os.path.exists(cached_features_file):
+        logger.info("Loading features from cached file %s", cached_features_file)
+        features = torch.load(cached_features_file)
+    else:
+        # Load data features from dataset file
+        logger.info("Creating features from dataset file at %s", args.data_dir)
+        if mode == "train":
+            examples = processor.get_examples("train")
+        elif mode == "dev":
+            examples = processor.get_examples("dev")
+        elif mode == "test":
+            examples = processor.get_examples("test")
+        else:
+            raise Exception("For mode, Only train, dev, test is available")
+
+        # Use cross entropy ignore index as padding label id so that only real label ids contribute to the loss later
+        pad_token_label_id = args.ignore_index
+        features = convert_examples_to_features(examples, args.max_seq_len, tokenizer,
+                                                pad_token_label_id=pad_token_label_id)
+        logger.info("Saving features into cached file %s", cached_features_file)
+        torch.save(features, cached_features_file)
 
     # Convert to Tensors and build dataset
     all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
