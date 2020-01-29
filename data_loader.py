@@ -91,8 +91,6 @@ class JointProcessor(object):
         for i, (text, intent, slot) in enumerate(zip(texts, intents, slots)):
             guid = "%s-%s" % (set_type, i)
             # 1. input_text
-            if not self.args.no_lower_case:
-                text = text.lower()
             words = text.split()  # Some are spaced twice
             # 2. intent
             intent_label = self.intent_labels.index(intent) if intent in self.intent_labels else self.intent_labels.index("UNK")
