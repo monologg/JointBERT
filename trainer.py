@@ -308,14 +308,7 @@ class Trainer(object):
 
         return input_ids_batch, attention_mask_batch, token_type_ids_batch, slot_label_mask_batch
 
-    def predict(self, orig_texts, tokenizer):
-        texts = []
-        if not self.args.no_lower_case:
-            for cased_text in orig_texts:
-                texts.append(cased_text.lower())
-        else:
-            texts = orig_texts
-
+    def predict(self, texts, tokenizer):
         batch = self._convert_texts_to_tensors(texts, tokenizer)
 
         slot_label_mask = batch[3]
@@ -358,7 +351,7 @@ class Trainer(object):
 
         # Make output.txt with texts, intent_list and slot_preds_list
         with open(os.path.join(self.args.pred_dir, self.args.pred_output_file), 'w', encoding='utf-8') as f:
-            for text, intent, slots in zip(orig_texts, intent_list, slot_preds_list):
+            for text, intent, slots in zip(texts, intent_list, slot_preds_list):
                 f.write("text: {}\n".format(text))
                 f.write("intent: {}\n".format(intent))
                 f.write("slots: {}\n".format(' '.join(slots)))
