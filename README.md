@@ -16,7 +16,7 @@
 
 - python>=3.5
 - torch==1.1.0
-- transformers==2.2.2
+- transformers==2.4.1
 - seqeval==0.0.12
 - pytorch-crf==0.7.2
 
