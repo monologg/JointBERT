@@ -9,16 +9,9 @@ def main(args):
     init_logger()
     tokenizer = load_tokenizer(args)
 
-    train_dataset = None
-    dev_dataset = None
-    test_dataset = None
-
-    if args.do_train:
-        train_dataset = load_and_cache_examples(args, tokenizer, mode="train")
-        dev_dataset = load_and_cache_examples(args, tokenizer, mode="dev")
-
-    if args.do_eval:
-        test_dataset = load_and_cache_examples(args, tokenizer, mode="test")
+    train_dataset = load_and_cache_examples(args, tokenizer, mode="train")
+    dev_dataset = load_and_cache_examples(args, tokenizer, mode="dev")
+    test_dataset = load_and_cache_examples(args, tokenizer, mode="test")
 
     trainer = Trainer(args, train_dataset, dev_dataset, test_dataset)
 
