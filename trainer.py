@@ -113,7 +113,6 @@ class Trainer(object):
         return global_step, tr_loss / global_step
 
     def evaluate(self, mode):
-        # We use test dataset because semeval doesn't have dev dataset
         if mode == 'test':
             dataset = self.test_dataset
         elif mode == 'dev':
