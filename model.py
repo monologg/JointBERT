@@ -34,15 +34,15 @@ class SlotClassifier(nn.Module):
 
 
 class JointBERT(BertPreTrainedModel):
-    def __init__(self, bert_config, args, intent_label_lst, slot_label_lst):
-        super(JointBERT, self).__init__(bert_config)
+    def __init__(self, config, args, intent_label_lst, slot_label_lst):
+        super(JointBERT, self).__init__(config)
         self.args = args
         self.num_intent_labels = len(intent_label_lst)
         self.num_slot_labels = len(slot_label_lst)
-        self.bert = PRETRAINED_MODEL_MAP[args.model_type](config=bert_config)  # Load pretrained bert
+        self.bert = PRETRAINED_MODEL_MAP[args.model_type](config=config)  # Load pretrained bert
 
-        self.intent_classifier = IntentClassifier(bert_config.hidden_size, self.num_intent_labels, args.dropout_rate)
-        self.slot_classifier = SlotClassifier(bert_config.hidden_size, self.num_slot_labels, args.dropout_rate)
+        self.intent_classifier = IntentClassifier(config.hidden_size, self.num_intent_labels, args.dropout_rate)
+        self.slot_classifier = SlotClassifier(config.hidden_size, self.num_slot_labels, args.dropout_rate)
 
         if args.use_crf:
             self.crf = CRF(num_tags=self.num_slot_labels, batch_first=True)
@@ -92,15 +92,15 @@ class JointBERT(BertPreTrainedModel):
 
 
 class JointDistilBERT(DistilBertPreTrainedModel):
-    def __init__(self, distilbert_config, args, intent_label_lst, slot_label_lst):
-        super(JointDistilBERT, self).__init__(distilbert_config)
+    def __init__(self, config, args, intent_label_lst, slot_label_lst):
+        super(JointDistilBERT, self).__init__(config)
         self.args = args
         self.num_intent_labels = len(intent_label_lst)
         self.num_slot_labels = len(slot_label_lst)
-        self.distilbert = PRETRAINED_MODEL_MAP[args.model_type](config=distilbert_config)  # Load pretrained bert
+        self.distilbert = PRETRAINED_MODEL_MAP[args.model_type](config=config)  # Load pretrained bert
 
-        self.intent_classifier = IntentClassifier(distilbert_config.hidden_size, self.num_intent_labels, args.dropout_rate)
-        self.slot_classifier = SlotClassifier(distilbert_config.hidden_size, self.num_slot_labels, args.dropout_rate)
+        self.intent_classifier = IntentClassifier(config.hidden_size, self.num_intent_labels, args.dropout_rate)
+        self.slot_classifier = SlotClassifier(config.hidden_size, self.num_slot_labels, args.dropout_rate)
 
         if args.use_crf:
             self.crf = CRF(num_tags=self.num_slot_labels, batch_first=True)

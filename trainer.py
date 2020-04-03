@@ -25,9 +25,9 @@ class Trainer(object):
         self.pad_token_label_id = args.ignore_index
 
         self.config_class, self.model_class, _ = MODEL_CLASSES[args.model_type]
-        self.bert_config = self.config_class.from_pretrained(args.model_name_or_path, finetuning_task=args.task)
+        self.config = self.config_class.from_pretrained(args.model_name_or_path, finetuning_task=args.task)
         self.model = self.model_class.from_pretrained(args.model_name_or_path,
-                                                      config=self.bert_config,
+                                                      config=self.config,
                                                       args=args,
                                                       intent_label_lst=self.intent_label_lst,
                                                       slot_label_lst=self.slot_label_lst)

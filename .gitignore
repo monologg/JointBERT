@@ -110,5 +110,6 @@ model/
 snips_model/
 atis_model/
 
+.DS_Store
 cached*
 sample_pred_out.txt
