@@ -76,11 +76,11 @@ def convert_input_file_to_tensor_dataset(lines,
         slot_label_mask = []
         for word in words:
             word_tokens = tokenizer.tokenize(word)
-            # bert-base-multilingual-cased sometimes output "nothing ([]) when calling tokenize with just a space.
-            if len(word_tokens) > 0:
-                tokens.extend(word_tokens)
-                # Real label position as 1 for the first token of the word, and padding ids for the remaining tokens
-                slot_label_mask.extend([pad_token_label_id + 1] + [pad_token_label_id] * (len(word_tokens) - 1))
+            if not word_tokens:
+                word_tokens = [unk_token]  # For handling the bad-encoded word
+            tokens.extend(word_tokens)
+            # Use the real label id for the first token of the word, and padding ids for the remaining tokens
+            slot_label_mask.extend([pad_token_label_id + 1] + [pad_token_label_id] * (len(word_tokens) - 1))
 
         # Account for [CLS] and [SEP]
         special_tokens_count = 2
