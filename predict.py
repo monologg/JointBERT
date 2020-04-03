@@ -64,6 +64,7 @@ def convert_input_file_to_tensor_dataset(lines,
     # Setting based on the current model type
     cls_token = tokenizer.cls_token
     sep_token = tokenizer.sep_token
+    unk_token = tokenizer.unk_token
     pad_token_id = tokenizer.pad_token_id
 
     all_input_ids = []
