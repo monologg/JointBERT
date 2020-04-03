@@ -88,6 +88,7 @@ $ python3 predict.py --input_file {INPUT_FILE_PATH} --output_file {OUTPUT_FILE_P
 - 2019/12/29: Add CRF option
 - 2019/12/30: Available to check `sentence-level semantic frame accuracy`
 - 2019/01/23: Only show the result related with uncased model
+- 2019/04/03: Update with new prediction file
 
 ## References
 
