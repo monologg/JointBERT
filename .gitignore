@@ -111,3 +111,4 @@ snips_model/
 atis_model/
 
 cached*
+sample_pred_out.txt

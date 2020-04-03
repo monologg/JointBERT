@@ -39,10 +39,7 @@ class JointBERT(BertPreTrainedModel):
         self.args = args
         self.num_intent_labels = len(intent_label_lst)
         self.num_slot_labels = len(slot_label_lst)
-        if args.do_pred:
-            self.bert = PRETRAINED_MODEL_MAP[args.model_type](config=bert_config)
-        else:
-            self.bert = PRETRAINED_MODEL_MAP[args.model_type].from_pretrained(args.model_name_or_path, config=bert_config)  # Load pretrained bert
+        self.bert = PRETRAINED_MODEL_MAP[args.model_type](config=bert_config)  # Load pretrained bert
 
         self.intent_classifier = IntentClassifier(bert_config.hidden_size, self.num_intent_labels, args.dropout_rate)
         self.slot_classifier = SlotClassifier(bert_config.hidden_size, self.num_slot_labels, args.dropout_rate)
@@ -100,11 +97,7 @@ class JointDistilBERT(DistilBertPreTrainedModel):
         self.args = args
         self.num_intent_labels = len(intent_label_lst)
         self.num_slot_labels = len(slot_label_lst)
-        if args.do_pred:
-            self.distilbert = PRETRAINED_MODEL_MAP[args.model_type](config=distilbert_config)
-        else:
-            self.distilbert = PRETRAINED_MODEL_MAP[args.model_type].from_pretrained(args.model_name_or_path,
-                                                                                    config=distilbert_config)  # Load pretrained bert
+        self.distilbert = PRETRAINED_MODEL_MAP[args.model_type](config=distilbert_config)  # Load pretrained bert
 
         self.intent_classifier = IntentClassifier(distilbert_config.hidden_size, self.num_intent_labels, args.dropout_rate)
         self.slot_classifier = SlotClassifier(distilbert_config.hidden_size, self.num_slot_labels, args.dropout_rate)

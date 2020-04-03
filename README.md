@@ -15,8 +15,8 @@
 ## Dependencies
 
 - python>=3.5
-- torch==1.1.0
-- transformers==2.4.1
+- torch==1.4.0
+- transformers==2.7.0
 - seqeval==0.0.12
 - pytorch-crf==0.7.2
 
@@ -54,17 +54,8 @@ $ python3 main.py --task snips \
 
 ## Prediction
 
-- There should be a trained model before running prediction.
-- You should write sentences in `preds.txt` in `preds` directory.
-- **If your model is trained using CRF, you must give `--use_crf` option when running prediction.**
-
 ```bash
-$ python3 main.py --task snips \
-                  --model_type bert \
-                  --model_dir snips_model \
-                  --do_pred \
-                  --pred_dir preds \
-                  --pred_input_file preds.txt
+$ python3 predict.py --input_file {INPUT_FILE_PATH} --output_file {OUTPUT_FILE_PATH} --model_dir {SAVED_CKPT_PATH}
 ```
 
 ## Results
