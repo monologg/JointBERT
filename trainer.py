@@ -230,7 +230,10 @@ class Trainer(object):
             raise Exception("Model doesn't exists! Train first!")
 
         try:
-            self.model = self.model_class.from_pretrained(self.args.model_dir)
+            self.model = self.model_class.from_pretrained(self.args.model_dir,
+                                                          args=self.args,
+                                                          intent_label_lst=self.intent_label_lst,
+                                                          slot_label_lst=self.slot_label_lst)
             self.model.to(self.device)
             logger.info("***** Model Loaded *****")
         except:
