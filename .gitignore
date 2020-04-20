@@ -106,7 +106,6 @@ venv.bak/
 ###################################
 .vscode/
 .idea/
-model/
 snips_model/
 atis_model/
 
