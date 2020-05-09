@@ -60,7 +60,7 @@ class JointBERT(BertPreTrainedModel):
                     slot_loss = slot_loss_fct(slot_logits.view(-1, self.num_slot_labels), slot_labels_ids.view(-1))
             total_loss += self.args.slot_loss_coef * slot_loss
 
-        outputs = ((intent_logits, slot_logits),) + outputs[1:]  # add hidden states and attention if they are here
+        outputs = ((intent_logits, slot_logits),) + outputs[2:]  # add hidden states and attention if they are here
 
         outputs = (total_loss,) + outputs
 
