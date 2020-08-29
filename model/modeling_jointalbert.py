@@ -1,15 +1,11 @@
 import torch
 import torch.nn as nn
-from transformers.modeling_albert import ALBERT_PRETRAINED_MODEL_ARCHIVE_MAP, AlbertPreTrainedModel, AlbertModel, AlbertConfig
+from transformers.modeling_albert import AlbertPreTrainedModel, AlbertModel, AlbertConfig
 from torchcrf import CRF
 from .module import IntentClassifier, SlotClassifier
 
 
 class JointAlbert(AlbertPreTrainedModel):
-    config_class = AlbertConfig
-    pretrained_model_archive_map = ALBERT_PRETRAINED_MODEL_ARCHIVE_MAP
-    base_model_prefix = "albert"
-
     def __init__(self, config, args, intent_label_lst, slot_label_lst):
         super(JointAlbert, self).__init__(config)
         self.args = args
@@ -25,7 +21,7 @@ class JointAlbert(AlbertPreTrainedModel):
 
     def forward(self, input_ids, attention_mask, token_type_ids, intent_label_ids, slot_labels_ids):
         outputs = self.albert(input_ids, attention_mask=attention_mask,
-                            token_type_ids=token_type_ids)  # sequence_output, pooled_output, (hidden_states), (attentions)
+                              token_type_ids=token_type_ids)  # sequence_output, pooled_output, (hidden_states), (attentions)
         sequence_output = outputs[0]
         pooled_output = outputs[1]  # [CLS]
 
