@@ -14,9 +14,9 @@
 
 ## Dependencies
 
-- python>=3.5
-- torch==1.4.0
-- transformers==2.7.0
+- python>=3.6
+- torch==1.6.0
+- transformers==3.0.2
 - seqeval==0.0.12
 - pytorch-crf==0.7.2
 
