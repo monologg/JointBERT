@@ -184,9 +184,7 @@ def predict(pred_config):
 
     intent_preds = np.argmax(intent_preds, axis=1)
 
-    if args.use_crf:
-        slot_preds = np.array(model.crf.decode(slot_logits))
-    else:
+    if not args.use_crf:
         slot_preds = np.argmax(slot_preds, axis=2)
 
     slot_label_map = {i: label for i, label in enumerate(slot_label_lst)}
