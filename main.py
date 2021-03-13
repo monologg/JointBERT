@@ -30,7 +30,6 @@ if __name__ == '__main__':
     parser.add_argument("--task", default=None, required=True, type=str, help="The name of the task to train")
     parser.add_argument("--model_dir", default=None, required=True, type=str, help="Path to save, load model")
     parser.add_argument("--data_dir", default="./data", type=str, help="The input data dir")
-    parser.add_argument("--intent_label_file", default="intent_label.txt", type=str, help="Intent Label file")
     parser.add_argument("--slot_label_file", default="slot_label.txt", type=str, help="Slot Label file")
 
     parser.add_argument("--model_type", default="bert", type=str, help="Model type selected in the list: " + ", ".join(MODEL_CLASSES.keys()))

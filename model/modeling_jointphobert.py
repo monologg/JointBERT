@@ -1,17 +1,17 @@
 import torch
 import torch.nn as nn
-from transformers.modeling_bert import BertPreTrainedModel, BertModel, BertConfig
+from transformers.modeling_roberta import RobertaPreTrainedModel,RobertaModel,RobertaConfig
 from torchcrf import CRF
 from .module import IntentClassifier, SlotClassifier
 
 
-class JointBERT(BertPreTrainedModel):
+class JointPhoBERT(RobertaPreTrainedModel):
     def __init__(self, config, args,  slot_label_lst):
-        super(JointBERT, self).__init__(config)
+        super(JointPhoBERT, self).__init__(config)
         self.args = args
 
         self.num_slot_labels = len(slot_label_lst)
-        self.bert = BertModel(config=config)  # Load pretrained bert
+        self.bert = RobertaModel(config=config)  # Load pretrained bert
         self.bilstm = nn.LSTM(bidirectional=True,
                               input_size=config.hidden_size * 4 ,
                               hidden_size=config.hidden_dim // 2, num_layers=2, batch_first=True)
@@ -23,14 +23,13 @@ class JointBERT(BertPreTrainedModel):
     def forward(self, input_ids, attention_mask, token_type_ids,  slot_labels_ids):
         outputs = self.bert(input_ids, attention_mask=attention_mask,output_hidden_states=True,
                             token_type_ids=token_type_ids)  # sequence_output, pooled_output, (hidden_states), (attentions)
-
         sequence_output = torch.cat((outputs[2][-1],outputs[2][-2],outputs[2][-3],outputs[2][-4]),dim=-1)
         sequence_output,_=self.bilstm(sequence_output)
-
 
         slot_logits = self.slot_classifier(sequence_output)
 
         total_loss = 0
+
 
 
         # 2. Slot Softmax

@@ -1,3 +1,4 @@
+
 import os
 import copy
 import json
@@ -6,7 +7,7 @@ import logging
 import torch
 from torch.utils.data import TensorDataset
 
-from utils import get_intent_labels, get_slot_labels
+from utils import  get_slot_labels
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +23,9 @@ class InputExample(object):
         slot_labels: (Optional) list. The slot labels of the example.
     """
 
-    def __init__(self, guid, words, intent_label=None, slot_labels=None):
+    def __init__(self, guid, words, slot_labels=None):
         self.guid = guid
         self.words = words
-        self.intent_label = intent_label
         self.slot_labels = slot_labels
 
     def __repr__(self):
@@ -44,11 +44,10 @@ class InputExample(object):
 class InputFeatures(object):
     """A single set of features of data."""
 
-    def __init__(self, input_ids, attention_mask, token_type_ids, intent_label_id, slot_labels_ids):
+    def __init__(self, input_ids, attention_mask, token_type_ids,  slot_labels_ids):
         self.input_ids = input_ids
         self.attention_mask = attention_mask
         self.token_type_ids = token_type_ids
-        self.intent_label_id = intent_label_id
         self.slot_labels_ids = slot_labels_ids
 
     def __repr__(self):
@@ -69,11 +68,9 @@ class JointProcessor(object):
 
     def __init__(self, args):
         self.args = args
-        self.intent_labels = get_intent_labels(args)
         self.slot_labels = get_slot_labels(args)
 
         self.input_text_file = 'seq.in'
-        self.intent_label_file = 'label'
         self.slot_labels_file = 'seq.out'
 
     @classmethod
@@ -85,22 +82,21 @@ class JointProcessor(object):
                 lines.append(line.strip())
             return lines
 
-    def _create_examples(self, texts, intents, slots, set_type):
+    def _create_examples(self, texts, slots, set_type):
         """Creates examples for the training and dev sets."""
         examples = []
-        for i, (text, intent, slot) in enumerate(zip(texts, intents, slots)):
+        for i, (text, slot) in enumerate(zip(texts,  slots)):
             guid = "%s-%s" % (set_type, i)
             # 1. input_text
             words = text.split()  # Some are spaced twice
-            # 2. intent
-            intent_label = self.intent_labels.index(intent) if intent in self.intent_labels else self.intent_labels.index("UNK")
+
             # 3. slot
             slot_labels = []
             for s in slot.split():
                 slot_labels.append(self.slot_labels.index(s) if s in self.slot_labels else self.slot_labels.index("UNK"))
 
             assert len(words) == len(slot_labels)
-            examples.append(InputExample(guid=guid, words=words, intent_label=intent_label, slot_labels=slot_labels))
+            examples.append(InputExample(guid=guid, words=words, slot_labels=slot_labels))
         return examples
 
     def get_examples(self, mode):
@@ -111,14 +107,18 @@ class JointProcessor(object):
         data_path = os.path.join(self.args.data_dir, self.args.task, mode)
         logger.info("LOOKING AT {}".format(data_path))
         return self._create_examples(texts=self._read_file(os.path.join(data_path, self.input_text_file)),
-                                     intents=self._read_file(os.path.join(data_path, self.intent_label_file)),
                                      slots=self._read_file(os.path.join(data_path, self.slot_labels_file)),
                                      set_type=mode)
 
 
 processors = {
     "atis": JointProcessor,
-    "snips": JointProcessor
+    "snips": JointProcessor,
+    "fold1":JointProcessor,
+    'fold2':JointProcessor,
+    'fold3':JointProcessor,
+    'fold4':JointProcessor,
+    "fold5":JointProcessor,
 }
 
 
@@ -184,7 +184,7 @@ def convert_examples_to_features(examples, max_seq_len, tokenizer,
         assert len(token_type_ids) == max_seq_len, "Error with token type length {} vs {}".format(len(token_type_ids), max_seq_len)
         assert len(slot_labels_ids) == max_seq_len, "Error with slot labels length {} vs {}".format(len(slot_labels_ids), max_seq_len)
 
-        intent_label_id = int(example.intent_label)
+
 
         if ex_index < 5:
             logger.info("*** Example ***")
@@ -193,14 +193,12 @@ def convert_examples_to_features(examples, max_seq_len, tokenizer,
             logger.info("input_ids: %s" % " ".join([str(x) for x in input_ids]))
             logger.info("attention_mask: %s" % " ".join([str(x) for x in attention_mask]))
             logger.info("token_type_ids: %s" % " ".join([str(x) for x in token_type_ids]))
-            logger.info("intent_label: %s (id = %d)" % (example.intent_label, intent_label_id))
             logger.info("slot_labels: %s" % " ".join([str(x) for x in slot_labels_ids]))
 
         features.append(
             InputFeatures(input_ids=input_ids,
                           attention_mask=attention_mask,
                           token_type_ids=token_type_ids,
-                          intent_label_id=intent_label_id,
                           slot_labels_ids=slot_labels_ids
                           ))
 
@@ -247,9 +245,8 @@ def load_and_cache_examples(args, tokenizer, mode):
     all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
     all_attention_mask = torch.tensor([f.attention_mask for f in features], dtype=torch.long)
     all_token_type_ids = torch.tensor([f.token_type_ids for f in features], dtype=torch.long)
-    all_intent_label_ids = torch.tensor([f.intent_label_id for f in features], dtype=torch.long)
     all_slot_labels_ids = torch.tensor([f.slot_labels_ids for f in features], dtype=torch.long)
 
     dataset = TensorDataset(all_input_ids, all_attention_mask,
-                            all_token_type_ids, all_intent_label_ids, all_slot_labels_ids)
+                            all_token_type_ids,all_slot_labels_ids)
     return dataset

@@ -7,7 +7,7 @@ import torch
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from transformers import BertConfig, AdamW, get_linear_schedule_with_warmup
 
-from utils import MODEL_CLASSES, compute_metrics, get_intent_labels, get_slot_labels
+from utils import MODEL_CLASSES, compute_metrics,  get_slot_labels
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +18,6 @@ class Trainer(object):
         self.train_dataset = train_dataset
         self.dev_dataset = dev_dataset
         self.test_dataset = test_dataset
-
-        self.intent_label_lst = get_intent_labels(args)
         self.slot_label_lst = get_slot_labels(args)
         # Use cross entropy ignore index as padding label id so that only real label ids contribute to the loss later
         self.pad_token_label_id = args.ignore_index
@@ -29,7 +27,7 @@ class Trainer(object):
         self.model = self.model_class.from_pretrained(args.model_name_or_path,
                                                       config=self.config,
                                                       args=args,
-                                                      intent_label_lst=self.intent_label_lst,
+
                                                       slot_label_lst=self.slot_label_lst)
 
         # GPU or CPU
@@ -80,8 +78,8 @@ class Trainer(object):
 
                 inputs = {'input_ids': batch[0],
                           'attention_mask': batch[1],
-                          'intent_label_ids': batch[3],
-                          'slot_labels_ids': batch[4]}
+
+                          'slot_labels_ids': batch[3]}
                 if self.args.model_type != 'distilbert':
                     inputs['token_type_ids'] = batch[2]
                 outputs = self.model(**inputs)
@@ -134,9 +132,8 @@ class Trainer(object):
         logger.info("  Batch size = %d", self.args.eval_batch_size)
         eval_loss = 0.0
         nb_eval_steps = 0
-        intent_preds = None
         slot_preds = None
-        out_intent_label_ids = None
+
         out_slot_labels_ids = None
 
         self.model.eval()
@@ -146,24 +143,16 @@ class Trainer(object):
             with torch.no_grad():
                 inputs = {'input_ids': batch[0],
                           'attention_mask': batch[1],
-                          'intent_label_ids': batch[3],
-                          'slot_labels_ids': batch[4]}
+                          'slot_labels_ids': batch[3]}
                 if self.args.model_type != 'distilbert':
                     inputs['token_type_ids'] = batch[2]
                 outputs = self.model(**inputs)
-                tmp_eval_loss, (intent_logits, slot_logits) = outputs[:2]
+                tmp_eval_loss, (slot_logits) = outputs[:2]
 
                 eval_loss += tmp_eval_loss.mean().item()
             nb_eval_steps += 1
 
-            # Intent prediction
-            if intent_preds is None:
-                intent_preds = intent_logits.detach().cpu().numpy()
-                out_intent_label_ids = inputs['intent_label_ids'].detach().cpu().numpy()
-            else:
-                intent_preds = np.append(intent_preds, intent_logits.detach().cpu().numpy(), axis=0)
-                out_intent_label_ids = np.append(
-                    out_intent_label_ids, inputs['intent_label_ids'].detach().cpu().numpy(), axis=0)
+
 
             # Slot prediction
             if slot_preds is None:
@@ -187,9 +176,6 @@ class Trainer(object):
             "loss": eval_loss
         }
 
-        # Intent result
-        intent_preds = np.argmax(intent_preds, axis=1)
-
         # Slot result
         if not self.args.use_crf:
             slot_preds = np.argmax(slot_preds, axis=2)
@@ -203,7 +189,7 @@ class Trainer(object):
                     out_slot_label_list[i].append(slot_label_map[out_slot_labels_ids[i][j]])
                     slot_preds_list[i].append(slot_label_map[slot_preds[i][j]])
 
-        total_result = compute_metrics(intent_preds, out_intent_label_ids, slot_preds_list, out_slot_label_list)
+        total_result = compute_metrics( slot_preds_list, out_slot_label_list)
         results.update(total_result)
 
         logger.info("***** Eval results *****")
@@ -231,7 +217,6 @@ class Trainer(object):
         try:
             self.model = self.model_class.from_pretrained(self.args.model_dir,
                                                           args=self.args,
-                                                          intent_label_lst=self.intent_label_lst,
                                                           slot_label_lst=self.slot_label_lst)
             self.model.to(self.device)
             logger.info("***** Model Loaded *****")
