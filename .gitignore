@@ -1,3 +1,8 @@
+/data/*
+/atis_model/*
+/snips_model/*
+/woz_model/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
