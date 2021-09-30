@@ -1,0 +1,17 @@
+
+# Installation
+
+```
+conda create --name jbert
+conda activate jbert
+conda install -c huggingface transformers
+pip install pytorch-crf
+pip install seqeval
+pip install torch
+```
+
+# Run
+
+```
+python3 main.py --task atis --model_type bert --model_dir atis_model --do_train --do_eval --no_cuda
+```
