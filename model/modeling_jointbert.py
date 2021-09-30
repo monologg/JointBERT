@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from transformers.modeling_bert import BertPreTrainedModel, BertModel, BertConfig
+from transformers.models.bert.modeling_bert import BertPreTrainedModel, BertModel, BertConfig
 from torchcrf import CRF
 from .module import IntentClassifier, SlotClassifier
 

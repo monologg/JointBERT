@@ -1,0 +1,127 @@
+(jbert) [pavel@yoda JointBERT]$ killall firefox
+(jbert) [pavel@yoda JointBERT]$ python3 main.py --task atis --model_type bert --model_dir atis_model --do_train --do_eval --no_cuda
+09/30/2021 15:24:12 - INFO - data_loader -   Loading features from cached file ./data/cached_train_atis_bert-base-uncased_50
+09/30/2021 15:24:12 - INFO - data_loader -   Loading features from cached file ./data/cached_dev_atis_bert-base-uncased_50
+09/30/2021 15:24:12 - INFO - data_loader -   Loading features from cached file ./data/cached_test_atis_bert-base-uncased_50
+Some weights of the model checkpoint at bert-base-uncased were not used when initializing JointBERT: ['cls.predictions.decoder.weight', 'cls.predictions.transform.dense.weight', 'cls.seq_relationship.weight', 'cls.seq_relationship.bias', 'cls.predictions.transform.LayerNorm.weight', 'cls.predictions.bias', 'cls.predictions.transform.dense.bias', 'cls.predictions.transform.LayerNorm.bias']
+- This IS expected if you are initializing JointBERT from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing JointBERT from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of JointBERT were not initialized from the model checkpoint at bert-base-uncased and are newly initialized: ['slot_classifier.linear.weight', 'slot_classifier.linear.bias', 'intent_classifier.linear.bias', 'intent_classifier.linear.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+09/30/2021 15:24:14 - INFO - trainer -   ***** Running training *****
+09/30/2021 15:24:14 - INFO - trainer -     Num examples = 4478
+09/30/2021 15:24:14 - INFO - trainer -     Num Epochs = 10
+09/30/2021 15:24:14 - INFO - trainer -     Total train batch size = 32
+09/30/2021 15:24:14 - INFO - trainer -     Gradient Accumulation steps = 1
+09/30/2021 15:24:14 - INFO - trainer -     Total optimization steps = 1400
+09/30/2021 15:24:14 - INFO - trainer -     Logging steps = 200
+09/30/2021 15:24:14 - INFO - trainer -     Save steps = 200
+Iteration: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 140/140 [07:17<00:00,  3.13s/it]
+Epoch:  10%|█████████████████▏                                                                                                                                                          | 1/10 [07:17<1:05:37, 437.53s/it]09/30/2021 15:34:38 - INFO - trainer -   ***** Running evaluation on dev dataset *****█▏                                                                                                 | 59/140 [03:03<04:11,  3.11s/it]
+09/30/2021 15:34:38 - INFO - trainer -     Num examples = 500
+09/30/2021 15:34:38 - INFO - trainer -     Batch size = 64
+Evaluating: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 8/8 [00:13<00:00,  1.72s/it]
+/home/pavel/miniconda3/envs/jbert/lib/python3.8/site-packages/seqeval/metrics/sequence_labeling.py:171: UserWarning: UNK seems not to be NE tag.
+  warnings.warn('{} seems not to be NE tag.'.format(chunk))█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 8/8 [00:13<00:00,  1.66s/it]
+09/30/2021 15:34:52 - INFO - trainer -   ***** Eval results *****
+09/30/2021 15:34:52 - INFO - trainer -     intent_acc = 0.964
+09/30/2021 15:34:52 - INFO - trainer -     loss = 0.3463265895843506
+09/30/2021 15:34:52 - INFO - trainer -     sementic_frame_acc = 0.77
+09/30/2021 15:34:52 - INFO - trainer -     slot_f1 = 0.9168121000581734
+09/30/2021 15:34:52 - INFO - trainer -     slot_precision = 0.9120370370370371
+09/30/2021 15:34:52 - INFO - trainer -     slot_recall = 0.9216374269005848
+09/30/2021 15:34:53 - INFO - trainer -   Saving model checkpoint to atis_model
+Iteration: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 140/140 [07:29<00:00,  3.21s/it]
+Epoch:  20%|██████████████████████████████████▊                                                                                                                                           | 2/10 [14:47<59:17, 444.72s/it]09/30/2021 15:45:11 - INFO - trainer -   ***** Running evaluation on dev dataset *****████████████████████████████████████████████████████████████████████████▊                         | 119/140 [06:07<01:05,  3.10s/it]
+09/30/2021 15:45:11 - INFO - trainer -     Num examples = 500
+09/30/2021 15:45:11 - INFO - trainer -     Batch size = 64
+Evaluating: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 8/8 [00:13<00:00,  1.72s/it]
+09/30/2021 15:45:25 - INFO - trainer -   ***** Eval results *****
+09/30/2021 15:45:25 - INFO - trainer -     intent_acc = 0.978███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 8/8 [00:13<00:00,  1.65s/it]
+09/30/2021 15:45:25 - INFO - trainer -     loss = 0.19760913960635662
+09/30/2021 15:45:25 - INFO - trainer -     sementic_frame_acc = 0.87
+09/30/2021 15:45:25 - INFO - trainer -     slot_f1 = 0.9589041095890412
+09/30/2021 15:45:25 - INFO - trainer -     slot_precision = 0.9558396281231842
+09/30/2021 15:45:25 - INFO - trainer -     slot_recall = 0.9619883040935673
+09/30/2021 15:45:26 - INFO - trainer -   Saving model checkpoint to atis_model
+Iteration: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 140/140 [07:26<00:00,  3.19s/it]
+Iteration: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 140/140 [07:11<00:00,  3.08s/it]
+Epoch:  40%|█████████████████████████████████████████████████████████████████████▌                                                                                                        | 4/10 [29:24<43:58, 439.82s/it]09/30/2021 15:55:41 - INFO - trainer -   ***** Running evaluation on dev dataset *****                                                                                                   | 39/140 [01:59<05:11,  3.08s/it]
+09/30/2021 15:55:41 - INFO - trainer -     Num examples = 500
+09/30/2021 15:55:41 - INFO - trainer -     Batch size = 64
+Evaluating: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 8/8 [00:13<00:00,  1.74s/it]
+09/30/2021 15:55:55 - INFO - trainer -   ***** Eval results *****
+09/30/2021 15:55:55 - INFO - trainer -     intent_acc = 0.98████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 8/8 [00:13<00:00,  1.67s/it]
+09/30/2021 15:55:55 - INFO - trainer -     loss = 0.20327830384485424
+09/30/2021 15:55:55 - INFO - trainer -     sementic_frame_acc = 0.912
+09/30/2021 15:55:55 - INFO - trainer -     slot_f1 = 0.9754672897196262
+09/30/2021 15:55:55 - INFO - trainer -     slot_precision = 0.9743290548424738
+09/30/2021 15:55:55 - INFO - trainer -     slot_recall = 0.9766081871345029
+09/30/2021 15:55:56 - INFO - trainer -   Saving model checkpoint to atis_model
+Iteration: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 140/140 [07:24<00:00,  3.18s/it]
+Epoch:  50%|███████████████████████████████████████████████████████████████████████████████████████                                                                                       | 5/10 [36:49<36:47, 441.60s/it]09/30/2021 16:06:10 - INFO - trainer -   ***** Running evaluation on dev dataset *****█████████████████████████████████████████████████▌                                                 | 99/140 [05:03<02:05,  3.06s/it]
+09/30/2021 16:06:10 - INFO - trainer -     Num examples = 500
+09/30/2021 16:06:10 - INFO - trainer -     Batch size = 64
+Evaluating: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 8/8 [00:13<00:00,  1.73s/it]
+09/30/2021 16:06:24 - INFO - trainer -   ***** Eval results *****
+09/30/2021 16:06:24 - INFO - trainer -     intent_acc = 0.972███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 8/8 [00:13<00:00,  1.67s/it]
+09/30/2021 16:06:24 - INFO - trainer -     loss = 0.24366192054003477
+09/30/2021 16:06:24 - INFO - trainer -     sementic_frame_acc = 0.902
+09/30/2021 16:06:24 - INFO - trainer -     slot_f1 = 0.9751969652757514
+09/30/2021 16:06:24 - INFO - trainer -     slot_precision = 0.9732090856144437
+09/30/2021 16:06:24 - INFO - trainer -     slot_recall = 0.9771929824561404
+09/30/2021 16:06:25 - INFO - trainer -   Saving model checkpoint to atis_model
+Iteration: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 140/140 [07:24<00:00,  3.17s/it]
+Iteration: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 140/140 [07:09<00:00,  3.07s/it]
+Epoch:  70%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▊                                                    | 7/10 [51:22<21:54, 438.12s/it]09/30/2021 16:16:38 - INFO - trainer -   ***** Running evaluation on dev dataset *****                                                                                                   | 19/140 [00:58<06:12,  3.08s/it]
+09/30/2021 16:16:38 - INFO - trainer -     Num examples = 500
+09/30/2021 16:16:38 - INFO - trainer -     Batch size = 64
+Evaluating: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 8/8 [00:13<00:00,  1.73s/it]
+09/30/2021 16:16:52 - INFO - trainer -   ***** Eval results *****
+09/30/2021 16:16:52 - INFO - trainer -     intent_acc = 0.98████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 8/8 [00:13<00:00,  1.67s/it]
+09/30/2021 16:16:52 - INFO - trainer -     loss = 0.19852966628968716
+09/30/2021 16:16:52 - INFO - trainer -     sementic_frame_acc = 0.916
+09/30/2021 16:16:52 - INFO - trainer -     slot_f1 = 0.9774787949692894
+09/30/2021 16:16:52 - INFO - trainer -     slot_precision = 0.9777647747220597
+09/30/2021 16:16:52 - INFO - trainer -     slot_recall = 0.9771929824561404
+09/30/2021 16:16:53 - INFO - trainer -   Saving model checkpoint to atis_model
+Iteration: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 140/140 [07:24<00:00,  3.17s/it]
+Epoch:  80%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▏                                  | 8/10 [58:46<14:39, 440.00s/it]09/30/2021 16:27:06 - INFO - trainer -   ***** Running evaluation on dev dataset *****█████████████████████████▎                                                                         | 79/140 [04:02<03:07,  3.07s/it]
+09/30/2021 16:27:06 - INFO - trainer -     Num examples = 500
+09/30/2021 16:27:06 - INFO - trainer -     Batch size = 64
+Evaluating: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 8/8 [00:13<00:00,  1.72s/it]
+09/30/2021 16:27:20 - INFO - trainer -   ***** Eval results *****
+09/30/2021 16:27:20 - INFO - trainer -     intent_acc = 0.978███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 8/8 [00:13<00:00,  1.67s/it]
+09/30/2021 16:27:20 - INFO - trainer -     loss = 0.2019642072264105
+09/30/2021 16:27:20 - INFO - trainer -     sementic_frame_acc = 0.914
+09/30/2021 16:27:20 - INFO - trainer -     slot_f1 = 0.9780765857936276
+09/30/2021 16:27:20 - INFO - trainer -     slot_precision = 0.9777907656341321
+09/30/2021 16:27:20 - INFO - trainer -     slot_recall = 0.9783625730994152
+09/30/2021 16:27:20 - INFO - trainer -   Saving model checkpoint to atis_model
+Iteration: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 140/140 [07:23<00:00,  3.17s/it]
+Epoch:  90%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▊                 | 9/10 [1:06:10<07:21, 441.06s/it]09/30/2021 16:37:34 - INFO - trainer -   ***** Running evaluation on dev dataset *****████████████████████████████████████████████████████████████████████████████████████████████████▊ | 139/140 [07:06<00:03,  3.06s/it]
+09/30/2021 16:37:34 - INFO - trainer -     Num examples = 500
+09/30/2021 16:37:34 - INFO - trainer -     Batch size = 64
+Evaluating: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 8/8 [00:13<00:00,  1.72s/it]
+09/30/2021 16:37:48 - INFO - trainer -   ***** Eval results *****
+09/30/2021 16:37:48 - INFO - trainer -     intent_acc = 0.978███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 8/8 [00:13<00:00,  1.66s/it]
+09/30/2021 16:37:48 - INFO - trainer -     loss = 0.20945460279472172
+09/30/2021 16:37:48 - INFO - trainer -     sementic_frame_acc = 0.912
+09/30/2021 16:37:48 - INFO - trainer -     slot_f1 = 0.9777907656341321
+09/30/2021 16:37:48 - INFO - trainer -     slot_precision = 0.9772196261682243
+09/30/2021 16:37:48 - INFO - trainer -     slot_recall = 0.9783625730994152
+09/30/2021 16:37:48 - INFO - trainer -   Saving model checkpoint to atis_model
+Iteration: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 140/140 [07:24<00:00,  3.17s/it]
+Epoch: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 10/10 [1:13:34<00:00, 441.42s/it]
+09/30/2021 16:37:49 - INFO - trainer -   ***** Model Loaded *****
+09/30/2021 16:37:49 - INFO - trainer -   ***** Running evaluation on test dataset *****
+09/30/2021 16:37:49 - INFO - trainer -     Num examples = 893
+09/30/2021 16:37:49 - INFO - trainer -     Batch size = 64
+Evaluating: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 14/14 [00:24<00:00,  1.77s/it]
+09/30/2021 16:38:14 - INFO - trainer -   ***** Eval results *****
+09/30/2021 16:38:14 - INFO - trainer -     intent_acc = 0.9820828667413214
+09/30/2021 16:38:14 - INFO - trainer -     loss = 0.25947999741349903
+09/30/2021 16:38:14 - INFO - trainer -     sementic_frame_acc = 0.8868980963045913
+09/30/2021 16:38:14 - INFO - trainer -     slot_f1 = 0.9569798068481123
+09/30/2021 16:38:14 - INFO - trainer -     slot_precision = 0.9541316526610645
+09/30/2021 16:38:14 - INFO - trainer -     slot_recall = 0.9598450158506516
