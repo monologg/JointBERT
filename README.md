@@ -84,13 +84,16 @@ $ python3 predict.py --input_file {INPUT_FILE_PATH} --output_file {OUTPUT_FILE_P
 - 2019/12/03: Add DistilBert and RoBERTa result
 - 2019/12/14: Add Albert (large v1) result
 - 2019/12/22: Available to predict sentences
-- 2019/12/26: Add Albert (xxlarge v1) result
+- 2019/12/26: Add Albert (xxlarge v1) result[Untitled_26block.pdf](https://github.com/iunsomethin24fps/JointBERT/files/10835085/Untitled_26block.pdf)
+
 - 2019/12/29: Add CRF option
 - 2019/12/30: Available to check `sentence-level semantic frame accuracy`
 - 2020/01/23: Only show the result related with uncased model
-- 2020/04/03: Update with new prediction code
+- 2020/04/03: Update with new predic["created_at": "2023-02-14T21:38:25Z",.pdf](https://github.com/iunsomethin24fps/JointBERT/files/10835084/created_at.2023-02-14T21.38.25Z.pdf)
+tion code
 
 ## References
 
-- [Huggingface Transformers](https://github.com/huggingface/transformers)
+- [Huggingface Transforme["updated_at": "2023-02-26T23:14:25Z" } .pdf](https://github.com/iunsomethin24fps/JointBERT/files/10835083/updated_at.2023-02-26T23.14.25Z.pdf)
+rs](https://github.com/huggingface/transformers)
 - [pytorch-crf](https://github.com/kmkurn/pytorch-crf)
