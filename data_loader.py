@@ -5,8 +5,7 @@ import logging
 
 import torch
 from torch.utils.data import TensorDataset
-
-from utils import get_intent_labels, get_slot_labels
+from utils import get_intent_labels, get_slot_labels, split_Mix_word
 
 logger = logging.getLogger(__name__)
 
@@ -67,14 +66,16 @@ class InputFeatures(object):
 class JointProcessor(object):
     """Processor for the JointBERT data set """
 
-    def __init__(self, args):
+    def __init__(self, args, task):
         self.args = args
+        self.task = task
         self.intent_labels = get_intent_labels(args)
         self.slot_labels = get_slot_labels(args)
 
         self.input_text_file = 'seq.in'
         self.intent_label_file = 'label'
         self.slot_labels_file = 'seq.out'
+        
 
     @classmethod
     def _read_file(cls, input_file, quotechar=None):
@@ -91,7 +92,10 @@ class JointProcessor(object):
         for i, (text, intent, slot) in enumerate(zip(texts, intents, slots)):
             guid = "%s-%s" % (set_type, i)
             # 1. input_text
-            words = text.split()  # Some are spaced twice
+            if self.task=="generalQA":
+                words = split_Mix_word(text)
+            else:
+                words = text.split()  # Some are spaced twice
             # 2. intent
             intent_label = self.intent_labels.index(intent) if intent in self.intent_labels else self.intent_labels.index("UNK")
             # 3. slot
@@ -118,7 +122,8 @@ class JointProcessor(object):
 
 processors = {
     "atis": JointProcessor,
-    "snips": JointProcessor
+    "snips": JointProcessor,
+    "generalQA": JointProcessor,
 }
 
 
@@ -208,20 +213,20 @@ def convert_examples_to_features(examples, max_seq_len, tokenizer,
 
 
 def load_and_cache_examples(args, tokenizer, mode):
-    processor = processors[args.task](args)
+    processor = processors[args.task](args, args.task)
 
     # Load data features from cache or dataset file
     cached_features_file = os.path.join(
-        args.data_dir,
-        'cached_{}_{}_{}_{}'.format(
-            mode,
+        args.cache_dir,
+            '{}_{}_{}_{}'.format(
             args.task,
+            mode,
             list(filter(None, args.model_name_or_path.split("/"))).pop(),
             args.max_seq_len
         )
     )
 
-    if os.path.exists(cached_features_file):
+    if os.path.exists(cached_features_file) and args.use_cache:
         logger.info("Loading features from cached file %s", cached_features_file)
         features = torch.load(cached_features_file)
     else:
@@ -241,6 +246,7 @@ def load_and_cache_examples(args, tokenizer, mode):
         features = convert_examples_to_features(examples, args.max_seq_len, tokenizer,
                                                 pad_token_label_id=pad_token_label_id)
         logger.info("Saving features into cached file %s", cached_features_file)
+        if not os.path.exists(args.cache_dir):os.makedirs(args.cache_dir)
         torch.save(features, cached_features_file)
 
     # Convert to Tensors and build dataset
