@@ -84,8 +84,10 @@ class Trainer(object):
                           'slot_labels_ids': batch[4]}
                 if self.args.model_type != 'distilbert':
                     inputs['token_type_ids'] = batch[2]
-                outputs = self.model(**inputs)
-                loss = outputs[0]
+                with torch.autocast(device_type='cuda', dtype=torch.bfloat16,
+                                    enabled=self.args.bf16 and self.device == 'cuda'):
+                    outputs = self.model(**inputs)
+                    loss = outputs[0]
 
                 if self.args.gradient_accumulation_steps > 1:
                     loss = loss / self.args.gradient_accumulation_steps
